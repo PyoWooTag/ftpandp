@@ -1,6 +1,8 @@
 package com.example.screenreadertest
 
 import android.accessibilityservice.AccessibilityService
+import android.os.Handler
+import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
@@ -13,7 +15,11 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event == null) return
+//        Log.d("AccessibilityService", "🔍 onAccessibilityEvent 호출됨")
+        if (event == null) {
+            Log.e("AccessibilityService", "Event is Null")
+            return
+        }
 
         Log.d("AccessibilityService", "이벤트 감지됨: ${event.eventType}")
 
@@ -27,21 +33,25 @@ class MyAccessibilityService : AccessibilityService() {
                 Log.e("AccessibilityService", "rootInActiveWindow is null!")
                 return
             }
-            checkButtons(rootNode)
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                checkButtons(rootNode)
+            }, 200)
         }
     }
 
 
-    private fun checkButtons(node: AccessibilityNodeInfo?) {
+    private fun checkButtons(node: AccessibilityNodeInfo?,  depth: Int = 0) {
         if (node == null) return  // null 체크 추가
 
         if (node.className?.toString() == "android.widget.Button") {
-            Log.d("AccessibilityService", "버튼 감지: ${node.text}")
+            val buttonText = node.text ?: node.contentDescription  // contentDescription도 확인
+            Log.d("AccessibilityService", "버튼 감지: ${buttonText ?: "null"}, depth: $depth")
         }
 
         for (i in 0 until node.childCount) {
             val childNode = node.getChild(i)
-            checkButtons(childNode) // null 체크된 상태에서 재귀 호출
+            checkButtons(childNode, depth+1) // null 체크된 상태에서 재귀 호출
         }
     }
 
