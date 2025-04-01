@@ -11,26 +11,26 @@ import android.view.accessibility.AccessibilityEvent
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-//import android.view.WindowInsets
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 
 class MyAccessibilityService : AccessibilityService() {
 
-//    private val handler = Handler(Looper.getMainLooper())
+    private val handler = Handler(Looper.getMainLooper())
     private var lastCheckTime = 0L
     private var overlayView: View? = null
+    private lateinit var windowManager: WindowManager // WindowManager 미리 선언
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        Log.d("AccessibilityService", "MyAccessibilityService가 시작됨")
+        windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event == null) {
-            Log.e("AccessibilityService", "Event is Null")
-            return
-        }
+        event ?: return
+
+        val packageName = event.packageName?.toString() ?: return
 
         val targetApps = setOf(
             "com.example.screenreadertest",
@@ -39,52 +39,35 @@ class MyAccessibilityService : AccessibilityService() {
             "com.fineapp.yogiyo"
         )
 
-        val packageName = event.packageName?.toString()
-        if (packageName == null) {
-            Log.e("AccessibilityService", "❌ packageName is null")
-            return
-        }
-
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            // ✅ 앱이 백그라운드로 가는 경우 감지
             if (packageName !in targetApps) {
-                if (overlayView != null) {  // ✅ 오버레이가 존재할 때만 제거
-                    Log.d("AccessibilityService", "🛑 앱이 변경됨. 오버레이 제거")
-                    removeOverlay(this)
-                }
-            }
-            return
-        }
-
-        if (packageName in targetApps) {
-            if (event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED ||
-//                event.eventType == AccessibilityEvent.TYPE_VIEW_CLICKED ||
-//                event.eventType == AccessibilityEvent.TYPE_VIEW_FOCUSED ||
-                event.eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED ||
-                event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED
-            ) {
-                val rootNode = rootInActiveWindow
-                if (rootNode == null) {
-                    Log.e("AccessibilityService", "rootInActiveWindow is null!")
-                    return
-                }
-
-                Handler(Looper.getMainLooper()).postDelayed({
-                    checkButtons(rootNode, this)
-                }, 200)
+                removeOverlay()
+                return
             }
         }
 
+        when (event.eventType) {
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+                if (packageName !in targetApps) removeOverlay()
+            }
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
+            AccessibilityEvent.TYPE_VIEW_CLICKED,
+            AccessibilityEvent.TYPE_VIEW_FOCUSED,
+            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
+            AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
+                if (packageName in targetApps) {
+                    rootInActiveWindow?.let { node ->
+                        handler.postDelayed({ checkButtons(node) }, 200)
+                    }
+                }
+            }
+        }
     }
 
-    private fun checkButtons(node: AccessibilityNodeInfo?, service: AccessibilityService) {
-        if (node == null) return
 
+    private fun checkButtons(node: AccessibilityNodeInfo) {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastCheckTime < 100) {
-//            Log.d("AccessibilityService", "🔄 너무 자주 실행됨: 실행 건너뜀")
-            return
-        }
+        if (currentTime - lastCheckTime < 200) return
         lastCheckTime = currentTime
 
         val stack = mutableListOf(node)
@@ -92,33 +75,21 @@ class MyAccessibilityService : AccessibilityService() {
 
         while (stack.isNotEmpty()) {
             val currentNode = stack.removeAt(stack.lastIndex)
-
             val className = currentNode.className?.toString()
             val nodeText = currentNode.text?.toString()
-            val isBtn = className?.contains("Button") == true
-            val isTV = className?.contains("TextView") == true
+            val isButton = className?.contains("Button") == true
+            val isTextView = className?.contains("TextView") == true
 
-            if ((isBtn || isTV) && (nodeText?.contains("결제하기") == true || nodeText?.contains("Pay") == true)) {
-                if (!currentNode.isVisibleToUser) {
-                    Log.w("AccessibilityService", "❌ 버튼이 화면에서 보이지 않음: $nodeText")
-                    continue
-                }
+            if ((isButton || isTextView) && (nodeText?.contains("결제하기") == true || nodeText?.contains("Pay") == true)) {
+                if (!currentNode.isVisibleToUser) continue
 
-                val rect = Rect()
-                currentNode.getBoundsInScreen(rect)
-
-                if (rect.top == rect.bottom) {
-                    Log.w("AccessibilityService", "⚠️ 버튼 높이가 0임. 부모 노드에서 위치 다시 가져오기.")
-                    currentNode.parent?.getBoundsInScreen(rect)
-                }
+                val rect = Rect().apply { currentNode.getBoundsInScreen(this) }
+                if (rect.top == rect.bottom) currentNode.parent?.getBoundsInScreen(rect)
 
                 if (rect.top != rect.bottom) {
-                    Log.d("AccessibilityService", "🚀 차단할 버튼 위치: $rect")
-                    blockButtonWithOverlay(service, rect)
+                    blockButtonWithOverlay(rect)
                     foundButton = true
-                } else {
-                    Log.e("AccessibilityService", "🚨 위치 탐지 실패: $nodeText")
-                    foundButton = false
+                    break // 첫 번째 버튼만 차단
                 }
             }
 
@@ -127,51 +98,34 @@ class MyAccessibilityService : AccessibilityService() {
             }
         }
 
-        if (!foundButton) {
-            removeOverlay(service)
-        }
+        if (!foundButton) removeOverlay()
     }
 
+    private fun blockButtonWithOverlay(rect: Rect) {
+        removeOverlay() // 기존 오버레이 제거
 
-    private fun blockButtonWithOverlay(service: AccessibilityService, rect: Rect) {
-        val windowManager = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-        overlayView?.let {
-            // 이전 오버레이가 존재하면 제거
-            windowManager.removeView(it)
-        }
-
-        overlayView = View(service).apply {
-            setBackgroundColor(Color.argb(150, 255, 0, 0)) // 반투명 빨강
-            isClickable = true  // 클릭 가능하도록 설정
-            isFocusable = true  // 포커스를 받을 수 있도록 설정
-
-            setOnTouchListener { _, event ->
+        overlayView = View(this).apply {
+            setBackgroundColor(Color.argb(150, 255, 0, 0))
+            isClickable = true
+            isFocusable = true
+            setOnTouchListener { v, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) {
-                    Log.d("AccessibilityService", "🚫 클릭 차단됨")
+                    Log.d("AccessibilityService", "클릭 차단됨")
+                    v.performClick()
                 }
-                true // 터치 이벤트 차단
+                true
             }
         }
 
-        // 화면 크기 가져오기
-        val display = windowManager.defaultDisplay
-        val screenWidth = display.width
-        val screenHeight = display.height
-
-        // 중앙 원점으로 계산: 화면 중앙을 기준으로 상대적 위치 계산
+        val (screenWidth, screenHeight) = getScreenSize()
         val x = 0
-        val y = rect.top - screenHeight / 2 + (rect.bottom - rect.top) / 2
-
-        Log.d("AccessibilityService", "blockButtonWithOverlay: screenWidth = $screenWidth, screenHeight = $screenHeight")
-        Log.d("AccessibilityService", "rect.left = ${rect.left}, rect.top = ${rect.top}, x = $x, y = $y")
+        val y = rect.top - screenHeight / 2
 
         val layoutParams = WindowManager.LayoutParams(
             rect.width(),
             rect.height(),
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-//                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
             this.x = x
@@ -181,24 +135,30 @@ class MyAccessibilityService : AccessibilityService() {
         windowManager.addView(overlayView, layoutParams)
     }
 
-    private fun removeOverlay(service: AccessibilityService) {
+    private fun removeOverlay() {
         overlayView?.let {
-            val windowManager = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
             windowManager.removeView(it)
-            overlayView = null // ✅ 뷰 객체도 제거
-            Log.d("AccessibilityService", "🛑 오버레이 제거 완료")
+            overlayView = null
         }
     }
 
-    private fun getStatusBarHeight(context: Context): Int {
-        val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
-        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
+    private fun getScreenSize(): Pair<Int, Int> {
+        val windowMetrics = windowManager.currentWindowMetrics
+        val insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+        val width = windowMetrics.bounds.width() - insets.left - insets.right
+        val height = windowMetrics.bounds.height() - insets.top - insets.bottom
+        return width to height
     }
 
-    private fun getNavigationBarHeight(context: Context): Int {
-        val resourceId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
-        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
-    }
+//    private fun getStatusBarHeight(context: Context): Int {
+//        val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+//        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
+//    }
+
+//    private fun getNavigationBarHeight(context: Context): Int {
+//        val resourceId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
+//        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
+//    }
 
     override fun onInterrupt() {
         Log.d("AccessibilityService", "서비스 중단됨")
