@@ -95,6 +95,7 @@ class MyAccessibilityService : AccessibilityService() {
 
             for (i in 0 until currentNode.childCount) {
                 currentNode.getChild(i)?.let { stack.add(it) }
+                Log.d("AccessibilityService", "Check!")
             }
         }
 
