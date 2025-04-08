@@ -111,6 +111,7 @@ class MyAccessibilityService : AccessibilityService() {
             setOnTouchListener { v, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) {
                     Log.d("AccessibilityService", "클릭 차단됨")
+                    Log.d("AccessibilityService", "Checked!")
                     v.performClick()
                 }
                 true
