@@ -92,7 +92,6 @@ class MyAccessibilityService : AccessibilityService() {
                     break // 첫 번째 버튼만 차단
                 }
             }
-
             for (i in 0 until currentNode.childCount) {
                 currentNode.getChild(i)?.let { stack.add(it) }
                 Log.d("AccessibilityService", "Check!")
