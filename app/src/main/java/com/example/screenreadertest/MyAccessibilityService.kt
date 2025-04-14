@@ -1,6 +1,7 @@
 package com.example.screenreadertest
 
 import android.accessibilityservice.AccessibilityService
+import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -39,17 +40,23 @@ class MyAccessibilityService : AccessibilityService() {
             "com.fineapp.yogiyo"
         )
 
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            if (packageName !in targetApps) {
-                removeOverlay()
-                return
-            }
-        }
+//        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+//            if (packageName !in targetApps) {
+//                removeOverlay()
+//                return
+//            }
+//        }
 
         when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-                if (packageName !in targetApps) removeOverlay()
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
+                Log.d("AccessibilityService", "Event type: ${event.eventType}, Package: $packageName")
+                if (packageName !in targetApps && !isAppInForeground(this)) {
+                    removeOverlay()
+                    Log.d("AccessibilityService", "타겟 앱이 아니고 포그라운드 앱이 아니므로 오버레이 제거")
+                }
             }
+
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
             AccessibilityEvent.TYPE_VIEW_CLICKED,
             AccessibilityEvent.TYPE_VIEW_FOCUSED,
@@ -64,6 +71,18 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
+    private fun isAppInForeground(context: Context): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val runningAppProcesses = activityManager.runningAppProcesses
+        runningAppProcesses?.let { processes ->
+            for (process in processes) {
+                if (process.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                    return process.processName == "com.example.screenreadertest"  // screenreadertest가 포그라운드에 있을 때만 true 반환
+                }
+            }
+        }
+        return false
+    }
 
     private fun checkButtons(node: AccessibilityNodeInfo) {
         val currentTime = System.currentTimeMillis()
@@ -94,7 +113,6 @@ class MyAccessibilityService : AccessibilityService() {
             }
             for (i in 0 until currentNode.childCount) {
                 currentNode.getChild(i)?.let { stack.add(it) }
-                Log.d("AccessibilityService", "Check!")
             }
         }
 
