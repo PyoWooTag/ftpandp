@@ -67,7 +67,7 @@ class MyAccessibilityService : AccessibilityService() {
             AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
                 if (packageName in targetApps) {
                     rootInActiveWindow?.let { node ->
-                        handler.postDelayed({ checkButtons(node) }, 200)
+                        handler.postDelayed({ checkButtons(node) }, 100)
                     }
                 }
             }
