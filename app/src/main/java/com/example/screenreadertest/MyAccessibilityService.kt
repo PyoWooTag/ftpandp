@@ -40,20 +40,12 @@ class MyAccessibilityService : AccessibilityService() {
             "com.fineapp.yogiyo"
         )
 
-//        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-//            if (packageName !in targetApps) {
-//                removeOverlay()
-//                return
-//            }
-//        }
-
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
                 Log.d("AccessibilityService", "Event type: ${event.eventType}, Package: $packageName")
                 if (packageName !in targetApps && !isAppInForeground(this)) {
                     removeOverlay()
-                    Log.d("AccessibilityService", "타겟 앱이 아니고 포그라운드 앱이 아니므로 오버레이 제거")
                 }
             }
 
