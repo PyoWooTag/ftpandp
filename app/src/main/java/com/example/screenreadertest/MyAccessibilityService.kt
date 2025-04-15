@@ -67,7 +67,10 @@ class MyAccessibilityService : AccessibilityService() {
             AccessibilityEvent.TYPE_VIEW_SCROLLED -> {
                 if (packageName in targetApps) {
                     rootInActiveWindow?.let { node ->
-                        handler.postDelayed({ checkButtons(node) }, 100)
+                        handler.postDelayed({
+//                            Log.d("AccessibilityService", "checkbuttons" )
+                            checkButtons(node)
+                        }, 100)
                     }
                 }
             }
@@ -147,9 +150,11 @@ class MyAccessibilityService : AccessibilityService() {
             }
         }
 
+        Log.d("AccessibilityService", "blockButtonWithOverlay" )
         val (screenWidth, screenHeight) = getScreenSize()
-        val x = 0
-        val y = rect.top - screenHeight / 2
+        Log.d("AccessibilityService", "blockButtonWithOverlay, h: $screenHeight")
+        Log.d("AccessibilityService", "Rect, $rect")
+
 
         val layoutParams = WindowManager.LayoutParams(
             rect.width(),
@@ -158,8 +163,11 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            this.x = x
-            this.y = y
+//            this.x = (screenWidth-rect.width())/2
+//            this.y = (screenHeight-rect.height())
+            this.x = rect.left
+            this.y = rect.top-windowManager.currentWindowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars()).top
+            gravity = Gravity.TOP or Gravity.START
         }
 
         windowManager.addView(overlayView, layoutParams)
@@ -174,9 +182,16 @@ class MyAccessibilityService : AccessibilityService() {
 
     private fun getScreenSize(): Pair<Int, Int> {
         val windowMetrics = windowManager.currentWindowMetrics
-        val insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-        val width = windowMetrics.bounds.width() - insets.left - insets.right
-        val height = windowMetrics.bounds.height() - insets.top - insets.bottom
+        val insets1 = windowMetrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+        val insets2 = windowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars())
+        val width = windowMetrics.bounds.width() - insets1.left - insets1.right
+        val height = windowMetrics.bounds.height() - insets1.top - insets1.bottom
+
+        Log.d("AccessibilityService", "getInsetsIgn: ${insets1.bottom}, getInsets: ${insets2.bottom}")
+        Log.d("AccessibilityService", "getInsetsIgn: $insets1, getInsets: $insets2")
+        Log.d("AccessibilityService", "bounds: ${windowMetrics.bounds}")
+        Log.d("AccessibilityService", "bounds: w:${windowMetrics.bounds.width()}, h:${windowMetrics.bounds.height()}")
+
         return width to height
     }
 
@@ -208,7 +223,8 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         )
 
