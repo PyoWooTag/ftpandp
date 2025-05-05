@@ -24,6 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.sp
 import com.example.screenreadertest.ui.theme.ScreenreadertestTheme
 
 
@@ -33,7 +35,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ScreenreadertestTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         context = this,
                         modifier = Modifier.padding(innerPadding)
@@ -49,29 +52,31 @@ fun MainScreen(context: Context, modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text("그 돈 씨", style = MaterialTheme.typography.headlineLarge)
-        Spacer(Modifier.height(24.dp))
+        Text("그 돈, Control", style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(140.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            InfoCard("멈춘 횟수", "12회") {
-                context.startActivity(Intent(context, StopDetailActivity::class.java))
+            InfoCard("배달한 횟수", "3", "회") {
+                context.startActivity(Intent(context, OrderCountDetailActivity::class.java))
             }
-            InfoCard("아낀 금액", "210,000원") {
-                context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
+            InfoCard("배달한 금액", "58,000", "원") {
+                context.startActivity(Intent(context, OrderAmountDetailActivity::class.java))
             }
         }
 
         Spacer(Modifier.height(12.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            InfoCard("배달한 횟수", "3회") {
-                context.startActivity(Intent(context, OrderCountDetailActivity::class.java))
+            InfoCard("멈춘 횟수", "12", "회") {
+                context.startActivity(Intent(context, StopDetailActivity::class.java))
             }
-            InfoCard("배달한 금액", "58,000원") {
-                context.startActivity(Intent(context, OrderAmountDetailActivity::class.java))
+            InfoCard("아낀 금액", "210,000", "원") {
+                context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
             }
         }
 
@@ -80,10 +85,14 @@ fun MainScreen(context: Context, modifier: Modifier = Modifier) {
         Button(
             onClick = { openAccessibilitySettings(context) },
             modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .height(56.dp)
+                .fillMaxWidth(0.9f)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Gray // 👉 버튼 배경을 회색으로 설정
+                    )
+
         ) {
-            Text("접근성 설정 열기")
+            Text("접근성 설정 열기", fontSize = 18.sp)
         }
     }
 }
@@ -107,12 +116,14 @@ fun GreetingPreview() {
 }
 
 @Composable
-fun InfoCard(label: String, value: String, onClick: () -> Unit) {
+fun InfoCard(label: String, number: String, unit: String = "", onClick: () -> Unit) {
     Card(
         modifier = Modifier
-            .size(width = 140.dp, height = 80.dp)
+            .size(width = 160.dp, height = 160.dp)
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(4.dp)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -121,8 +132,21 @@ fun InfoCard(label: String, value: String, onClick: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium)
-            Text(text = value, style = MaterialTheme.typography.titleMedium)
+            Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color.Black)
+
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = number,
+                    style = MaterialTheme.typography.headlineSmall, // 숫자 강조
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = unit,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Black
+                )
+            }
         }
     }
 }
@@ -133,7 +157,7 @@ fun BarGraphPlaceholder(barColor: Color) {
     Row(
         modifier = Modifier
             .padding(16.dp)
-            .height(100.dp),
+            .height(200.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.Bottom
     ) {
