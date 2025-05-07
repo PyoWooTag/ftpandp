@@ -1,0 +1,32 @@
+{
+  "2025-01": {
+    "stopCount": 9,
+    "savedAmount": 210000,
+    "orderCount": 2,
+    "orderAmount": 60000
+  },
+  "2025-02": {
+    "stopCount": 8,
+    "savedAmount": 180000,
+    "orderCount": 3,
+    "orderAmount": 75000
+  },
+  "2025-03": {
+    "stopCount": 7,
+    "savedAmount": 150000,
+    "orderCount": 4,
+    "orderAmount": 90000
+  },
+  "2025-04": {
+    "stopCount": 6,
+    "savedAmount": 120000,
+    "orderCount": 5,
+    "orderAmount": 105000
+  },
+  "2025-05": {
+    "stopCount": 5,
+    "savedAmount": 90000,
+    "orderCount": 6,
+    "orderAmount": 120000
+  }
+}
