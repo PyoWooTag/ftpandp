@@ -24,9 +24,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.sp
 import com.example.screenreadertest.ui.theme.ScreenreadertestTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -48,34 +50,45 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(context: Context, modifier: Modifier = Modifier) {
+fun MainScreen(context: Context,
+               viewModel: MainViewModel = viewModel(),
+               modifier: Modifier = Modifier) {
+    val stats = remember { viewModel.getThisMonthStats(context) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(14.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(Modifier.height(24.dp))
         Text("그 돈 씨", style = MaterialTheme.typography.headlineLarge)
         Text("그 돈, Control", style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.height(140.dp))
+        Spacer(Modifier.height(48.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            InfoCard("배달한 횟수", "3", "회") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회") {
                 context.startActivity(Intent(context, OrderCountDetailActivity::class.java))
             }
-            InfoCard("배달한 금액", "58,000", "원") {
+            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원") {
                 context.startActivity(Intent(context, OrderAmountDetailActivity::class.java))
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            InfoCard("멈춘 횟수", "12", "회") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            InfoCard("멈춘 횟수", stats["stopCount"] ?: "-", "회") {
                 context.startActivity(Intent(context, StopDetailActivity::class.java))
             }
-            InfoCard("아낀 금액", "210,000", "원") {
+            InfoCard("아낀 금액", stats["savedAmount"] ?: "-", "원") {
                 context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
             }
         }
@@ -88,14 +101,14 @@ fun MainScreen(context: Context, modifier: Modifier = Modifier) {
                 .fillMaxWidth(0.9f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Gray // 👉 버튼 배경을 회색으로 설정
-                    )
-
+                containerColor = Color.Gray
+            )
         ) {
             Text("접근성 설정 열기", fontSize = 18.sp)
         }
     }
 }
+
 
 /**
  * 접근성 설정 화면을 여는 함수
@@ -152,23 +165,3 @@ fun InfoCard(label: String, number: String, unit: String = "", onClick: () -> Un
 }
 
 
-@Composable
-fun BarGraphPlaceholder(barColor: Color) {
-    Row(
-        modifier = Modifier
-            .padding(16.dp)
-            .height(200.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        repeat(5) {
-            Box(
-                modifier = Modifier
-                    .width(20.dp)
-                    .height((40..100).random().dp)
-                    .background(color = barColor)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-    }
-}
