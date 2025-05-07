@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "435702527068",
+    "project_id": "forthat-f6bb0",
+    "storage_bucket": "forthat-f6bb0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435702527068:android:c8265716f7b27c01c12299",
+        "android_client_info": {
+          "package_name": "com.example.screenreadertest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkN9XUKg92hvKbuEMZJxSqbiw5lqg5p94"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435702527068:android:b8cbded30896a898c12299",
+        "android_client_info": {
+          "package_name": "com.pyowootaek.ForThatPrice"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkN9XUKg92hvKbuEMZJxSqbiw5lqg5p94"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
