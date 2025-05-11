@@ -29,6 +29,8 @@ class MyAccessibilityService : AccessibilityService() {
     private var overlayView: View? = null
     private var centerPopupView: View? = null
     private var isConfirmed = false         // overlay 생성 변수
+    private var targetButtonNode: AccessibilityNodeInfo? = null
+    private var ignoreUntil: Long = 0L  // 쿨다운 종료 시각
 
     private lateinit var windowManager: WindowManager // WindowManager 미리 선언
 
@@ -96,6 +98,16 @@ class MyAccessibilityService : AccessibilityService() {
 
     private fun checkButtons(node: AccessibilityNodeInfo) {
         val currentTime = System.currentTimeMillis()
+
+        if (currentTime < ignoreUntil) {
+            Log.d("AccessibilityService", "쿨다운 중으로 버튼 탐지 무시")
+            return
+        }
+        if (isConfirmed) {
+            Log.d("AccessibilityService", "쿨다운 종료 → isConfirmed = false")
+            isConfirmed = false
+        }
+
         if (currentTime - lastCheckTime < 200) return
         lastCheckTime = currentTime
 
@@ -116,7 +128,12 @@ class MyAccessibilityService : AccessibilityService() {
                 if (rect.top == rect.bottom) currentNode.parent?.getBoundsInScreen(rect)
 
                 if (rect.top != rect.bottom) {
-                    blockButtonWithOverlay(rect)
+                    if (isConfirmed) {
+                        currentNode.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    } else {
+                        targetButtonNode = currentNode // 클릭을 위해 저장
+                        blockButtonWithOverlay(rect)
+                    }
                     foundButton = true
                     break // 첫 번째 버튼만 차단
                 }
@@ -259,8 +276,16 @@ class MyAccessibilityService : AccessibilityService() {
                 text = "네"
                 setOnClickListener {
                     isConfirmed = true
+                    ignoreUntil = System.currentTimeMillis() + 10_000  // 10초 = 10000ms
+
                     removeOverlay()
                     removeCenterPopup()
+
+                    overlayView?.isEnabled = false
+
+                    // 실제로 버튼 클릭 실행
+                    targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    targetButtonNode = null
                 }
             })
             addView(Button(context).apply {
