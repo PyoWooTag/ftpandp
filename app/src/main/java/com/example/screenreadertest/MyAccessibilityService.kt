@@ -165,8 +165,13 @@ class MyAccessibilityService : AccessibilityService() {
         ).apply {
 //            this.x = (screenWidth-rect.width())/2
 //            this.y = (screenHeight-rect.height())
+            val navSize = windowManager.currentWindowMetrics
+                .windowInsets.getInsets(WindowInsets.Type.systemBars())
             this.x = rect.left
-            this.y = rect.top-windowManager.currentWindowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars()).top
+            this.y = rect.top
+            Log.d("AccessibilityService", "y-start $navSize")
+//            this.y = rect.top - windowManager.currentWindowMetrics
+//                .windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top
             gravity = Gravity.TOP or Gravity.START
         }
 
@@ -184,8 +189,8 @@ class MyAccessibilityService : AccessibilityService() {
         val windowMetrics = windowManager.currentWindowMetrics
         val insets1 = windowMetrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
         val insets2 = windowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars())
-        val width = windowMetrics.bounds.width() - insets1.left - insets1.right
-        val height = windowMetrics.bounds.height() - insets1.top - insets1.bottom
+        val width = windowMetrics.bounds.width() - insets2.left - insets2.right
+        val height = windowMetrics.bounds.height() - insets2.top - insets2.bottom
 
         Log.d("AccessibilityService", "getInsetsIgn: ${insets1.bottom}, getInsets: ${insets2.bottom}")
         Log.d("AccessibilityService", "getInsetsIgn: $insets1, getInsets: $insets2")
