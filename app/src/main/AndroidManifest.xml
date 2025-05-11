@@ -12,6 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Screenreadertest"
         tools:targetApi="31">
+        <activity android:name=".StopDetailActivity" />
+        <activity android:name=".SavedAmountDetailActivity" />
+        <activity android:name=".OrderCountDetailActivity" />
+        <activity android:name=".OrderAmountDetailActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
