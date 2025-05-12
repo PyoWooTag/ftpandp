@@ -55,7 +55,7 @@ class MyAccessibilityService : AccessibilityService() {
             "com.example.screenreadertest",
             "com.coupang.mobile.eats",
             "com.sampleapp",
-            "com.fineapp.yogiyo"
+//            "com.fineapp.yogiyo"
         )
 
 //        if (packageName !in targetApps) return
