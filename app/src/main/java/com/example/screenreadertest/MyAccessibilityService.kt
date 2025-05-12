@@ -58,7 +58,7 @@ class MyAccessibilityService : AccessibilityService() {
             "com.fineapp.yogiyo"
         )
 
-        if (packageName !in targetApps) return
+//        if (packageName !in targetApps) return
 
         // 주문 완료 감지
         if (isDeliver && event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
@@ -186,7 +186,8 @@ class MyAccessibilityService : AccessibilityService() {
         if (isConfirmed) return
 
         overlayView = View(this).apply {
-            setBackgroundColor(Color.argb(150, 255, 0, 0))
+//            setBackgroundColor(Color.argb(150, 255, 0, 0))
+            setBackgroundColor(Color.argb(0, 255, 0, 0))
             isClickable = true
             isFocusable = true
             setOnTouchListener { v, event ->
