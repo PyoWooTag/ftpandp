@@ -23,14 +23,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 class MyAccessibilityService : AccessibilityService() {
-
+    private var lastDetectedAmount: Int = 0
     private val handler = Handler(Looper.getMainLooper())
     private var lastCheckTime = 0L
     private var overlayView: View? = null
     private var centerPopupView: View? = null
-    private var isConfirmed = false         // overlay 생성 변수
+    private var isConfirmed = false
 
-    private lateinit var windowManager: WindowManager // WindowManager 미리 선언
+    private lateinit var windowManager: WindowManager
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -52,7 +52,6 @@ class MyAccessibilityService : AccessibilityService() {
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
-                Log.d("AccessibilityService", "Event type: ${event.eventType}, Package: $packageName")
                 if (packageName !in targetApps && !isAppInForeground(this))
                     removeOverlay()
 
@@ -68,7 +67,6 @@ class MyAccessibilityService : AccessibilityService() {
                 if (packageName in targetApps) {
                     rootInActiveWindow?.let { node ->
                         handler.postDelayed({
-//                            Log.d("AccessibilityService", "checkbuttons" )
                             checkButtons(node)
                         }, 100)
                     }
@@ -116,9 +114,15 @@ class MyAccessibilityService : AccessibilityService() {
                 if (rect.top == rect.bottom) currentNode.parent?.getBoundsInScreen(rect)
 
                 if (rect.top != rect.bottom) {
+                    val amount = extractAmountFromText(nodeText)
+                    if (amount > 0) {
+                        Log.d("AccessibilityService", "🎯 버튼 텍스트에서 금액 추출: ${amount}원")
+                        lastDetectedAmount = amount
+                    }
+
                     blockButtonWithOverlay(rect)
                     foundButton = true
-                    break // 첫 번째 버튼만 차단
+                    break
                 }
             }
             for (i in 0 until currentNode.childCount) {
@@ -140,21 +144,12 @@ class MyAccessibilityService : AccessibilityService() {
             isFocusable = true
             setOnTouchListener { v, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) {
-                    Log.d("AccessibilityService", "클릭 차단됨")
-                    Log.d("AccessibilityService", "Checked!")
                     v.performClick()
-//                    showPendingPopup()
                     showCenterPopup()
                 }
                 true
             }
         }
-
-        Log.d("AccessibilityService", "blockButtonWithOverlay" )
-        val (screenWidth, screenHeight) = getScreenSize()
-        Log.d("AccessibilityService", "blockButtonWithOverlay, h: $screenHeight")
-        Log.d("AccessibilityService", "Rect, $rect")
-
 
         val layoutParams = WindowManager.LayoutParams(
             rect.width(),
@@ -163,10 +158,8 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-//            this.x = (screenWidth-rect.width())/2
-//            this.y = (screenHeight-rect.height())
             this.x = rect.left
-            this.y = rect.top-windowManager.currentWindowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars()).top
+            this.y = rect.top - windowManager.currentWindowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars()).top
             gravity = Gravity.TOP or Gravity.START
         }
 
@@ -178,57 +171,6 @@ class MyAccessibilityService : AccessibilityService() {
             windowManager.removeView(it)
             overlayView = null
         }
-    }
-
-    private fun getScreenSize(): Pair<Int, Int> {
-        val windowMetrics = windowManager.currentWindowMetrics
-        val insets1 = windowMetrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-        val insets2 = windowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars())
-        val width = windowMetrics.bounds.width() - insets1.left - insets1.right
-        val height = windowMetrics.bounds.height() - insets1.top - insets1.bottom
-
-        Log.d("AccessibilityService", "getInsetsIgn: ${insets1.bottom}, getInsets: ${insets2.bottom}")
-        Log.d("AccessibilityService", "getInsetsIgn: $insets1, getInsets: $insets2")
-        Log.d("AccessibilityService", "bounds: ${windowMetrics.bounds}")
-        Log.d("AccessibilityService", "bounds: w:${windowMetrics.bounds.width()}, h:${windowMetrics.bounds.height()}")
-
-        return width to height
-    }
-
-//    private fun getStatusBarHeight(context: Context): Int {
-//        val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
-//        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
-//    }
-
-//    private fun getNavigationBarHeight(context: Context): Int {
-//        val resourceId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
-//        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
-//    }
-
-
-    private fun showPendingPopup() {
-        removeOverlay()
-
-        overlayView = View(this).apply {
-            setBackgroundColor(Color.argb(120, 0, 0, 0)) // 반투명 검정
-            isClickable = true
-            isFocusable = true
-
-            setOnClickListener {
-                showCenterPopup()  // <- 오버레이 클릭 시 팝업 띄우기
-            }
-        }
-
-        val overlayParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT
-        )
-
-        windowManager.addView(overlayView, overlayParams)
     }
 
     private fun showCenterPopup() {
@@ -258,6 +200,11 @@ class MyAccessibilityService : AccessibilityService() {
             addView(Button(context).apply {
                 text = "네"
                 setOnClickListener {
+                    val amount = lastDetectedAmount
+                    val manager = LocalStatsManager(applicationContext)
+                    manager.increment("orderCount", 1)
+                    manager.increment("orderAmount", amount)
+
                     isConfirmed = true
                     removeOverlay()
                     removeCenterPopup()
@@ -266,6 +213,10 @@ class MyAccessibilityService : AccessibilityService() {
             addView(Button(context).apply {
                 text = "아니요"
                 setOnClickListener {
+                    val amount = lastDetectedAmount
+                    val manager = LocalStatsManager(applicationContext)
+                    manager.increment("stopCount", 1)
+                    manager.increment("savedAmount", amount)
                     val intent = Intent(Intent.ACTION_MAIN).apply {
                         addCategory(Intent.CATEGORY_HOME)
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -284,9 +235,10 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
-        )
+        ).apply {
+            gravity = Gravity.CENTER
+        }
 
-        params.gravity = Gravity.CENTER
         windowManager.addView(popup, params)
         centerPopupView = popup
     }
@@ -296,5 +248,12 @@ class MyAccessibilityService : AccessibilityService() {
             windowManager.removeView(it)
             centerPopupView = null
         }
+    }
+
+    private fun extractAmountFromText(text: String?): Int {
+        if (text.isNullOrBlank()) return 0
+        val regex = Regex("""([\d,]+)[\s]*원""")
+        val match = regex.find(text)
+        return match?.groupValues?.get(1)?.replace(",", "")?.toIntOrNull() ?: 0
     }
 }
