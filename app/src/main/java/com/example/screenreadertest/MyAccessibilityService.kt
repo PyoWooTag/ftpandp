@@ -31,6 +31,7 @@ class MyAccessibilityService : AccessibilityService() {
     private var isConfirmed = false         // overlay 생성 변수
     private var targetButtonNode: AccessibilityNodeInfo? = null
     private var ignoreUntil: Long = 0L  // 쿨다운 종료 시각
+    private var isDeliver = false;
 
     private lateinit var windowManager: WindowManager // WindowManager 미리 선언
 
@@ -51,10 +52,30 @@ class MyAccessibilityService : AccessibilityService() {
             "com.fineapp.yogiyo"
         )
 
+        if (packageName !in targetApps) return
+
+        // 주문 완료 감지
+        if (isDeliver && event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            rootInActiveWindow?.let { node ->
+                if (checkOrderConfirmedByTime(node)) {
+                    val manager = LocalStatsManager(applicationContext)
+                    manager.increment("orderCount", 1)
+                    manager.increment("orderAmount", lastDetectedAmount)
+                    Log.d("AccessibilityService", "✅ 최종 주문 기록 완료")
+
+                    isDeliver = false  // 중복 방지용 리셋
+                }
+            }
+        }
+        
+        // 결제하기 버튼 탐지
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
-                Log.d("AccessibilityService", "Event type: ${event.eventType}, Package: $packageName")
+                Log.d(
+                    "AccessibilityService",
+                    "Event type: ${event.eventType}, Package: $packageName"
+                )
                 if (packageName !in targetApps && !isAppInForeground(this))
                     removeOverlay()
 
@@ -70,7 +91,7 @@ class MyAccessibilityService : AccessibilityService() {
                 if (packageName in targetApps) {
                     rootInActiveWindow?.let { node ->
                         handler.postDelayed({
-//                            Log.d("AccessibilityService", "checkbuttons" )
+                            Log.d("AccessibilityService", "checkbuttons")
                             checkButtons(node)
                         }, 100)
                     }
@@ -305,6 +326,7 @@ class MyAccessibilityService : AccessibilityService() {
                     // 실제로 버튼 클릭 실행
                     targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                     targetButtonNode = null
+                    isDeliver = true
                 }
             })
             addView(Button(context).apply {
@@ -346,10 +368,34 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
+    /**
+     * 실제 배달 주문 확인을 위하여 '(정수)분' 키워드 확인
+     */
     private fun extractAmountFromText(text: String?): Int {
         if (text.isNullOrBlank()) return 0
         val regex = Regex("""([\d,]+)[\s]*원""")
         val match = regex.find(text)
         return match?.groupValues?.get(1)?.replace(",", "")?.toIntOrNull() ?: 0
+    }
+
+    private fun checkOrderConfirmedByTime(node: AccessibilityNodeInfo): Boolean {
+        val stack = mutableListOf(node)
+        val regex = Regex("""\d{1,3}\s*분""")  // 1~3자리 숫자 + "분"
+
+        while (stack.isNotEmpty()) {
+            val current = stack.removeAt(stack.lastIndex)
+            val text = current.text?.toString() ?: continue
+
+            if (regex.containsMatchIn(text)) {
+                Log.d("AccessibilityService", "주문 완료 감지됨 (예상시간: $text)")
+                return true
+            }
+
+            for (i in 0 until current.childCount) {
+                current.getChild(i)?.let { stack.add(it) }
+            }
+        }
+
+        return false
     }
 }
