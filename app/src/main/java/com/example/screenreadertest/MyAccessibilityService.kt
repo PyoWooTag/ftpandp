@@ -28,6 +28,7 @@ class MyAccessibilityService : AccessibilityService() {
     private var lastCheckTime = 0L
     private var overlayView: View? = null
     private var centerPopupView: View? = null
+    private var backgroundOverlayView: View? = null
     private var isConfirmed = false         // overlay 생성 변수
     private var targetButtonNode: AccessibilityNodeInfo? = null
     private var ignoreUntil: Long = 0L  // 쿨다운 종료 시각
@@ -286,6 +287,20 @@ class MyAccessibilityService : AccessibilityService() {
     private fun showCenterPopup() {
         if (centerPopupView != null) return
 
+        backgroundOverlayView = View(this).apply {
+            setBackgroundColor(Color.argb(120, 0, 0, 0)) // 반투명 검정
+        }
+
+        val bgParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        )
+        bgParams.gravity = Gravity.CENTER
+        windowManager.addView(backgroundOverlayView, bgParams)
+
         val popup = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Color.WHITE)
@@ -365,6 +380,10 @@ class MyAccessibilityService : AccessibilityService() {
         centerPopupView?.let {
             windowManager.removeView(it)
             centerPopupView = null
+        }
+        backgroundOverlayView?.let {
+            windowManager.removeView(it)
+            backgroundOverlayView = null
         }
     }
 
