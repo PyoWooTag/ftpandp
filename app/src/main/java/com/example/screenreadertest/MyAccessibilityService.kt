@@ -23,7 +23,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 class MyAccessibilityService : AccessibilityService() {
-
+    private var lastDetectedAmount: Int = 0
     private val handler = Handler(Looper.getMainLooper())
     private var lastCheckTime = 0L
     private var overlayView: View? = null
@@ -32,7 +32,7 @@ class MyAccessibilityService : AccessibilityService() {
     private var targetButtonNode: AccessibilityNodeInfo? = null
     private var ignoreUntil: Long = 0L  // 쿨다운 종료 시각
 
-    private lateinit var windowManager: WindowManager // WindowManager 미리 선언
+    private lateinit var windowManager: WindowManager
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -70,7 +70,6 @@ class MyAccessibilityService : AccessibilityService() {
                 if (packageName in targetApps) {
                     rootInActiveWindow?.let { node ->
                         handler.postDelayed({
-//                            Log.d("AccessibilityService", "checkbuttons" )
                             checkButtons(node)
                         }, 100)
                     }
@@ -134,6 +133,13 @@ class MyAccessibilityService : AccessibilityService() {
                         targetButtonNode = currentNode // 클릭을 위해 저장
                         blockButtonWithOverlay(rect)
                     }
+                    val amount = extractAmountFromText(nodeText)
+                    if (amount > 0) {
+                        Log.d("AccessibilityService", "🎯 버튼 텍스트에서 금액 추출: ${amount}원")
+                        lastDetectedAmount = amount
+                    }
+
+                    blockButtonWithOverlay(rect)
                     foundButton = true
                     break // 첫 번째 버튼만 차단
                 }
@@ -183,7 +189,7 @@ class MyAccessibilityService : AccessibilityService() {
 //            this.x = (screenWidth-rect.width())/2
 //            this.y = (screenHeight-rect.height())
             this.x = rect.left
-            this.y = rect.top-windowManager.currentWindowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars()).top
+            this.y = rect.top - windowManager.currentWindowMetrics.windowInsets.getInsets(WindowInsets.Type.systemBars()).top
             gravity = Gravity.TOP or Gravity.START
         }
 
@@ -275,6 +281,11 @@ class MyAccessibilityService : AccessibilityService() {
             addView(Button(context).apply {
                 text = "네"
                 setOnClickListener {
+                    val amount = lastDetectedAmount
+                    val manager = LocalStatsManager(applicationContext)
+                    manager.increment("orderCount", 1)
+                    manager.increment("orderAmount", amount)
+
                     isConfirmed = true
                     ignoreUntil = System.currentTimeMillis() + 10_000  // 10초 = 10000ms
 
@@ -291,6 +302,10 @@ class MyAccessibilityService : AccessibilityService() {
             addView(Button(context).apply {
                 text = "아니요"
                 setOnClickListener {
+                    val amount = lastDetectedAmount
+                    val manager = LocalStatsManager(applicationContext)
+                    manager.increment("stopCount", 1)
+                    manager.increment("savedAmount", amount)
                     val intent = Intent(Intent.ACTION_MAIN).apply {
                         addCategory(Intent.CATEGORY_HOME)
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -321,5 +336,12 @@ class MyAccessibilityService : AccessibilityService() {
             windowManager.removeView(it)
             centerPopupView = null
         }
+    }
+
+    private fun extractAmountFromText(text: String?): Int {
+        if (text.isNullOrBlank()) return 0
+        val regex = Regex("""([\d,]+)[\s]*원""")
+        val match = regex.find(text)
+        return match?.groupValues?.get(1)?.replace(",", "")?.toIntOrNull() ?: 0
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,7 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.example.screenreadertest.ui.theme.ScreenreadertestTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -37,8 +43,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ScreenreadertestTheme {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         context = this,
                         modifier = Modifier.padding(innerPadding)
@@ -50,10 +55,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(context: Context,
-               viewModel: MainViewModel = viewModel(),
-               modifier: Modifier = Modifier) {
-    val stats = remember { viewModel.getThisMonthStats(context) }
+fun MainScreen(
+    context: Context,
+    viewModel: MainViewModel = viewModel(),
+    modifier: Modifier = Modifier
+) {
+    var stats by remember { mutableStateOf(viewModel.getThisMonthStats(context)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        lifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                stats = viewModel.getThisMonthStats(context)
+            }
+        })
+    }
 
     Column(
         modifier = Modifier
@@ -100,32 +116,17 @@ fun MainScreen(context: Context,
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Gray
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("접근성 설정 열기", fontSize = 18.sp)
         }
     }
 }
 
-
-/**
- * 접근성 설정 화면을 여는 함수
- */
 fun openAccessibilitySettings(context: Context) {
-    Log.d("AccessibilityService", "click")
-
+    Log.d("AccessibilityService", "접근성 설정 버튼 클릭")
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
     context.startActivity(intent)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ScreenreadertestTheme {
-        MainScreen(context = MainActivity())
-    }
 }
 
 @Composable
@@ -134,9 +135,9 @@ fun InfoCard(label: String, number: String, unit: String = "", onClick: () -> Un
         modifier = Modifier
             .size(width = 160.dp, height = 160.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
             modifier = Modifier
@@ -145,23 +146,29 @@ fun InfoCard(label: String, number: String, unit: String = "", onClick: () -> Un
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color.Black)
-
+            Text(text = label, style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = number,
-                    style = MaterialTheme.typography.headlineSmall, // 숫자 강조
-                    color = Color.Black
+                    style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = unit,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Black
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewMainScreen() {
+    val context = LocalContext.current
+    ScreenreadertestTheme {
+        MainScreen(context = context)
+    }
+}
 
