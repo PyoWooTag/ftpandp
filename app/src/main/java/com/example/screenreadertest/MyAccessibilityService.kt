@@ -58,7 +58,7 @@ class MyAccessibilityService : AccessibilityService() {
             "com.fineapp.yogiyo"
         )
 
-        if (packageName !in targetApps) return
+//        if (packageName !in targetApps) return
 
         // 주문 완료 감지
         if (isDeliver && event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
