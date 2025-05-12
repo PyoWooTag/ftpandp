@@ -193,9 +193,7 @@ class MyAccessibilityService : AccessibilityService() {
             addView(Button(context).apply {
                 text = "네"
                 setOnClickListener {
-                    val manager = LocalStatsManager(applicationContext)
-                    manager.increment("orderCount", 1)
-                    manager.increment("orderAmount", lastDetectedAmount)
+                    DeliveryEventManager.appendEvent(applicationContext, lastDetectedAmount, true)
                     isConfirmed = true
                     ignoreUntil = System.currentTimeMillis() + 10_000
                     removeOverlay()
@@ -208,9 +206,7 @@ class MyAccessibilityService : AccessibilityService() {
             addView(Button(context).apply {
                 text = "아니요"
                 setOnClickListener {
-                    val manager = LocalStatsManager(applicationContext)
-                    manager.increment("stopCount", 1)
-                    manager.increment("savedAmount", lastDetectedAmount)
+                    DeliveryEventManager.appendEvent(applicationContext, lastDetectedAmount, false)
                     val intent = Intent(Intent.ACTION_MAIN).apply {
                         addCategory(Intent.CATEGORY_HOME)
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK

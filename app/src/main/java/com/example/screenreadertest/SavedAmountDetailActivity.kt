@@ -1,7 +1,7 @@
 // SavedAmountDetailActivity.kt
 package com.example.screenreadertest
 
-import DetailViewModel
+import com.example.screenreadertest.DetailViewModel
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
@@ -31,7 +31,7 @@ class SavedAmountDetailActivity : ComponentActivity() {
 
 @Composable
 fun SavedAmountScreen(context: Context, viewModel: DetailViewModel = viewModel()) {
-    val data = remember { viewModel.getGraphData(context, "savedAmount") }
+    val data = remember { viewModel.getGraphData(context, ordered = true, valueOnly = false) }
 
     MonthlyGraphCard(
         title = "아낀 금액",
