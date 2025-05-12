@@ -7,9 +7,13 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import android.view.accessibility.AccessibilityEvent
 import android.util.Log
 import android.view.Gravity
@@ -21,6 +25,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import java.util.Calendar
 
 class MyAccessibilityService : AccessibilityService() {
     private var lastDetectedAmount: Int = 0
@@ -287,8 +292,9 @@ class MyAccessibilityService : AccessibilityService() {
     private fun showCenterPopup() {
         if (centerPopupView != null) return
 
+        // 🔹 배경 오버레이 (반투명)
         backgroundOverlayView = View(this).apply {
-            setBackgroundColor(Color.argb(120, 0, 0, 0)) // 반투명 검정
+            setBackgroundColor(Color.argb(120, 0, 0, 0))
         }
 
         val bgParams = WindowManager.LayoutParams(
@@ -297,70 +303,116 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
-        )
-        bgParams.gravity = Gravity.CENTER
+        ).apply {
+            gravity = Gravity.CENTER
+        }
         windowManager.addView(backgroundOverlayView, bgParams)
 
+        // 🔹 데이터 불러오기
+        val manager = LocalStatsManager(applicationContext)
+        val orderCount = manager.get("orderCount")
+        val orderAmount = manager.get("orderAmount")
+        val calendar = Calendar.getInstance()
+        val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+
+        // 🔹 강조 텍스트
+        val summaryText = "${month}월 동안 배달 ${orderCount}회, ${"%,d".format(orderAmount)}원 사용\n"
+        val summarySpannable = SpannableString(summaryText).apply {
+            val boldTarget = "${orderCount}회"
+            val start = indexOf(boldTarget)
+            if (start >= 0) {
+                setSpan(StyleSpan(Typeface.BOLD), start, start + boldTarget.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+
+        // 🔹 텍스트 뷰들
+        val summaryTextView = TextView(this).apply {
+            text = summarySpannable
+            textSize = 14f
+            setTextColor(Color.DKGRAY)
+            gravity = Gravity.CENTER
+        }
+
+        val questionTextView = TextView(this).apply {
+            text = "정말 주문하시겠습니까?"
+            textSize = 18f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.BLACK)
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 20)
+        }
+
+        // 🔹 버튼 가로 배치
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(0, 20, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val yesButton = Button(this).apply {
+            text = "네"
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginEnd = 10
+            }
+            setOnClickListener {
+                val amount = lastDetectedAmount
+                manager.increment("orderCount", 1)
+                manager.increment("orderAmount", amount)
+
+                isConfirmed = true
+                isDeliver = true
+                ignoreUntil = System.currentTimeMillis() + 10_000
+
+                removeOverlay()
+                removeCenterPopup()
+                overlayView?.isEnabled = false
+                targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                targetButtonNode = null
+            }
+        }
+
+        val noButton = Button(this).apply {
+            text = "아니요"
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = 10
+            }
+            setOnClickListener {
+                val amount = lastDetectedAmount
+                manager.increment("stopCount", 1)
+                manager.increment("savedAmount", amount)
+
+                val intent = Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(intent)
+
+                removeOverlay()
+                removeCenterPopup()
+            }
+        }
+
+        buttonRow.addView(yesButton)
+        buttonRow.addView(noButton)
+
+        // 🔹 팝업 뷰 구성
         val popup = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Color.WHITE)
             setPadding(40, 40, 40, 40)
             gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
             background = GradientDrawable().apply {
                 cornerRadius = 30f
                 setColor(Color.WHITE)
             }
 
-            addView(TextView(context).apply {
-                text = "정말 주문하시겠습니까?"
-                textSize = 18f
-                setTextColor(Color.BLACK)
-                gravity = Gravity.CENTER
-            })
-
-            addView(Button(context).apply {
-                text = "네"
-                setOnClickListener {
-                    val amount = lastDetectedAmount
-                    val manager = LocalStatsManager(applicationContext)
-                    manager.increment("orderCount", 1)
-                    manager.increment("orderAmount", amount)
-
-                    isConfirmed = true
-                    ignoreUntil = System.currentTimeMillis() + 10_000  // 10초 = 10000ms
-
-                    removeOverlay()
-                    removeCenterPopup()
-
-                    overlayView?.isEnabled = false
-
-                    // 실제로 버튼 클릭 실행
-                    targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                    targetButtonNode = null
-                    isDeliver = true
-                }
-            })
-            addView(Button(context).apply {
-                text = "아니요"
-                setOnClickListener {
-                    val amount = lastDetectedAmount
-                    val manager = LocalStatsManager(applicationContext)
-                    manager.increment("stopCount", 1)
-                    manager.increment("savedAmount", amount)
-                    val intent = Intent(Intent.ACTION_MAIN).apply {
-                        addCategory(Intent.CATEGORY_HOME)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    }
-                    context.startActivity(intent)
-
-                    removeOverlay()
-                    removeCenterPopup()
-                }
-            })
+            addView(summaryTextView)
+            addView(questionTextView)
+            addView(buttonRow)
         }
 
         val params = WindowManager.LayoutParams(
@@ -369,9 +421,10 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
-        )
+        ).apply {
+            gravity = Gravity.CENTER
+        }
 
-        params.gravity = Gravity.CENTER
         windowManager.addView(popup, params)
         centerPopupView = popup
     }
@@ -392,7 +445,7 @@ class MyAccessibilityService : AccessibilityService() {
      */
     private fun extractAmountFromText(text: String?): Int {
         if (text.isNullOrBlank()) return 0
-        val regex = Regex("""([\d,]+)[\s]*원""")
+        val regex = Regex("""([\d,]+)\s*원""")
         val match = regex.find(text)
         return match?.groupValues?.get(1)?.replace(",", "")?.toIntOrNull() ?: 0
     }
