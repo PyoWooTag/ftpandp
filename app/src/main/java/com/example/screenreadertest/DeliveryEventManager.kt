@@ -6,6 +6,8 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileWriter
 import java.time.OffsetDateTime
+import java.time.YearMonth
+import kotlin.random.Random
 
 object DeliveryEventManager {
     private const val FILE_NAME = "ordered_data.json"
@@ -80,5 +82,43 @@ object DeliveryEventManager {
             orderCount = orderCount,
             orderAmount = orderAmount
         )
+    }
+
+    /**
+     * 테스트 dummy 생성 함수
+     */
+    fun insertDummyData(context: Context) {
+        val file = File(context.filesDir, "ordered_data.json")
+        val dataArray = JSONArray()
+
+        val now = OffsetDateTime.now()
+        val monthsBack = 5
+
+        repeat(monthsBack) { i ->
+            val targetMonth = now.minusMonths(i.toLong())
+            val yearMonth = YearMonth.from(targetMonth)
+
+            val eventsThisMonth = Random.nextInt(10, 21) // 10~20개
+            repeat(eventsThisMonth) {
+                val isOrdered = Random.nextInt(0, 2) // 0 또는 1
+                val amount = Random.nextInt(2, 11) * 5000
+                val randomDay = Random.nextInt(1, yearMonth.lengthOfMonth() + 1)
+
+                val fakeDate = targetMonth.withDayOfMonth(randomDay)
+                    .withHour(Random.nextInt(10, 22))
+                    .withMinute(Random.nextInt(0, 60))
+                    .withSecond(Random.nextInt(0, 60))
+
+                val event = JSONObject().apply {
+                    put("orderDate", fakeDate.toString())
+                    put("orderAmount", amount)
+                    put("ordered", isOrdered)
+                }
+
+                dataArray.put(event)
+            }
+        }
+
+        FileWriter(file, false).use { it.write(dataArray.toString(2)) }
     }
 }

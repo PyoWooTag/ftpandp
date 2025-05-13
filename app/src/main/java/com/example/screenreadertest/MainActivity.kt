@@ -119,7 +119,12 @@ fun MainScreen(
         Spacer(Modifier.height(32.dp))
 
         Button(
-            onClick = { openAccessibilitySettings(context) },
+            onClick = {
+                openAccessibilitySettings(context)
+
+                // Test Dummy
+//                DeliveryEventManager.insertDummyData(context)
+                      },
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .height(50.dp),
