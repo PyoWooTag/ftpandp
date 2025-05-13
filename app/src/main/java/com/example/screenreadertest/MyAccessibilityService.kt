@@ -38,7 +38,9 @@ class MyAccessibilityService : AccessibilityService() {
     private var targetButtonNode: AccessibilityNodeInfo? = null
     private var ignoreUntil: Long = 0L
     private var backgroundOverlayView: View? = null
+
     private var isDeliver = false;
+    private var lastNoClickTime = 0L
 
     private lateinit var windowManager: WindowManager // WindowManager 미리 선언
 
@@ -374,17 +376,29 @@ class MyAccessibilityService : AccessibilityService() {
                 marginStart = 10
             }
             setOnClickListener {
+                val now = System.currentTimeMillis()
+
+                // 5분 이내에 누른 경우 무시
+                if (now - lastNoClickTime < 5 * 60 * 1000) {
+                    Log.d("AccessibilityService", "쿨다운 중: 아니요 클릭 무시")
+                    removeCenterPopup()
+                    return@setOnClickListener
+                }
+
+                lastNoClickTime = now
+
                 val amount = lastDetectedAmount
 
                 DeliveryEventManager.appendEvent(applicationContext, amount, false)
 
-                val intent = Intent(Intent.ACTION_MAIN).apply {
-                    addCategory(Intent.CATEGORY_HOME)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                startActivity(intent)
+                // deprecated
+//                val intent = Intent(Intent.ACTION_MAIN).apply {
+//                    addCategory(Intent.CATEGORY_HOME)
+//                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+//                }
+//                startActivity(intent)
 
-                removeOverlay()
+//                removeOverlay()
                 removeCenterPopup()
             }
         }
