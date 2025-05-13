@@ -1,0 +1,252 @@
+[
+  {
+    "orderDate": "2025-01-01T14:12:32+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-01-06T12:32:26+08:28",
+    "orderAmount": 25000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-01-07T13:15:33+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-01-08T20:01:22+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-01-09T10:09:56+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-01-15T10:58:49+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-01-23T14:25:55+08:28",
+    "orderAmount": 25000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-01-23T16:45:30+08:28",
+    "orderAmount": 25000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-01-25T22:40:36+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-01-26T18:14:19+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-02-07T23:03:35+08:28",
+    "orderAmount": 23000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-02-10T15:28:41+08:28",
+    "orderAmount": 29000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-02-11T14:01:30+08:28",
+    "orderAmount": 23000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-02-20T22:25:42+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-02-21T19:52:37+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-02-21T21:54:14+08:28",
+    "orderAmount": 27000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-02-25T18:42:17+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-02-27T22:06:27+08:28",
+    "orderAmount": 25000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-02-28T18:33:35+08:28",
+    "orderAmount": 23000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-02-28T20:11:48+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-03-05T21:17:59+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-03-08T16:29:22+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-03-08T16:59:59+08:28",
+    "orderAmount": 25000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-03-10T15:40:55+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-03-10T23:49:54+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-03-12T23:40:51+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-03-13T13:49:35+08:28",
+    "orderAmount": 25000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-03-17T10:42:52+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-03-26T13:52:04+08:28",
+    "orderAmount": 29000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-03-27T13:17:17+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-08T20:15:55+08:28",
+    "orderAmount": 25000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-04-09T11:00:58+08:28",
+    "orderAmount": 29000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-04-09T13:18:04+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-10T17:01:28+08:28",
+    "orderAmount": 29000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-14T16:24:24+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-14T23:17:06+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-19T13:49:50+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-19T20:32:39+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-23T21:09:16+08:28",
+    "orderAmount": 25000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-04-24T19:26:56+08:28",
+    "orderAmount": 25000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-05-01T21:30:11+08:28",
+    "orderAmount": 25000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-05-03T16:06:59+08:28",
+    "orderAmount": 29000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-05-07T18:43:19+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-05-09T10:12:48+08:28",
+    "orderAmount": 25000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-05-15T10:04:28+08:28",
+    "orderAmount": 23000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-05-18T18:49:23+08:28",
+    "orderAmount": 27000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-05-22T12:55:50+08:28",
+    "orderAmount": 23000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-05-22T15:55:12+08:28",
+    "orderAmount": 29000,
+    "ordered": 0
+  },
+  {
+    "orderDate": "2025-05-23T12:52:49+08:28",
+    "orderAmount": 23000,
+    "ordered": 1
+  },
+  {
+    "orderDate": "2025-05-23T14:50:18+08:28",
+    "orderAmount": 25000,
+    "ordered": 0
+  }
+]

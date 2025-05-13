@@ -1,29 +1,39 @@
+package com.example.screenreadertest
+
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import com.example.screenreadertest.LocalStatsManager
-import com.example.screenreadertest.StatsMerger
-import com.example.screenreadertest.getLastFiveMonths
-import org.json.JSONArray
 import org.json.JSONObject
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 data class MonthlyData(val month: String, val value: Int)
 
 class DetailViewModel : ViewModel() {
+    fun getGraphData(context: Context, ordered: Boolean, valueOnly: Boolean): List<MonthlyData> {
+        val result = mutableMapOf<String, Int>()
 
-    private fun parseData(context: Context): JSONObject? {
-        return try {
-            val jsonStr = context.assets.open("monthly_stats.json").bufferedReader().use { it.readText() }
-            JSONObject(jsonStr)
+        try {
+            val arr = DeliveryEventManager.readAllEvents(context)
+            for (i in 0 until arr.length()) {
+                val obj = arr.getJSONObject(i)
+                val date = OffsetDateTime.parse(
+                    obj.getString("orderDate"),
+                    DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                )
+                val ym = YearMonth.from(date).toString()
+                val amount = obj.getInt("orderAmount")
+                val isOrdered = obj.getInt("ordered") == 1
+
+                if (isOrdered != ordered) continue
+
+                val toAdd = if (valueOnly) amount else 1
+                result[ym] = (result[ym] ?: 0) + toAdd
+            }
         } catch (e: Exception) {
-            null // 더미 파일 없을 경우 null 반환
+            e.printStackTrace()
         }
-    }
 
-    fun getGraphData(context: Context, key: String): List<MonthlyData> {
-        val merged = StatsMerger.getMonthlyMergedStats(context, key)
-        return merged.toSortedMap().map { MonthlyData(it.key, it.value) }
+        return result.toSortedMap().map { MonthlyData(it.key, it.value) }
     }
 }

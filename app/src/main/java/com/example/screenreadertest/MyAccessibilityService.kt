@@ -33,10 +33,11 @@ class MyAccessibilityService : AccessibilityService() {
     private var lastCheckTime = 0L
     private var overlayView: View? = null
     private var centerPopupView: View? = null
-    private var backgroundOverlayView: View? = null
-    private var isConfirmed = false         // overlay 생성 변수
+
+    private var isConfirmed = false
     private var targetButtonNode: AccessibilityNodeInfo? = null
-    private var ignoreUntil: Long = 0L  // 쿨다운 종료 시각
+    private var ignoreUntil: Long = 0L
+    private var backgroundOverlayView: View? = null
     private var isDeliver = false;
 
     private lateinit var windowManager: WindowManager // WindowManager 미리 선언
@@ -73,7 +74,7 @@ class MyAccessibilityService : AccessibilityService() {
                 }
             }
         }
-        
+
         // 결제하기 버튼 탐지
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
@@ -182,7 +183,6 @@ class MyAccessibilityService : AccessibilityService() {
 
     private fun blockButtonWithOverlay(rect: Rect) {
         removeOverlay()
-
         if (isConfirmed) return
 
         overlayView = View(this).apply {
@@ -215,17 +215,11 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-//            this.x = (screenWidth-rect.width())/2
-//            this.y = (screenHeight-rect.height())
-//            this.x = (screenWidth-rect.width())/2
-//            this.y = (screenHeight-rect.height())
             val navSize = windowManager.currentWindowMetrics
                 .windowInsets.getInsets(WindowInsets.Type.systemBars())
             this.x = rect.left
             this.y = rect.top
             Log.d("AccessibilityService", "y-start $navSize")
-//            this.y = rect.top - windowManager.currentWindowMetrics
-//                .windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top
             gravity = Gravity.TOP or Gravity.START
         }
 
@@ -364,6 +358,8 @@ class MyAccessibilityService : AccessibilityService() {
                 manager.increment("orderCount", 1)
                 manager.increment("orderAmount", amount)
 
+                DeliveryEventManager.appendEvent(applicationContext, amount, true)
+
                 isConfirmed = true
                 isDeliver = true
                 ignoreUntil = System.currentTimeMillis() + 10_000
@@ -386,6 +382,8 @@ class MyAccessibilityService : AccessibilityService() {
                 manager.increment("stopCount", 1)
                 manager.increment("savedAmount", amount)
 
+                DeliveryEventManager.appendEvent(applicationContext, amount, false)
+
                 val intent = Intent(Intent.ACTION_MAIN).apply {
                     addCategory(Intent.CATEGORY_HOME)
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -399,6 +397,7 @@ class MyAccessibilityService : AccessibilityService() {
 
         buttonRow.addView(yesButton)
         buttonRow.addView(noButton)
+
 
         // 🔹 팝업 뷰 구성
         val popup = LinearLayout(this).apply {

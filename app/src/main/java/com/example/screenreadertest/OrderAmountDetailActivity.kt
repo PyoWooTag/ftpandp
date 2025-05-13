@@ -1,7 +1,7 @@
 // OrderAmountDetailActivity.kt
 package com.example.screenreadertest
 
-import DetailViewModel
+
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
@@ -31,7 +31,7 @@ class OrderAmountDetailActivity : ComponentActivity() {
 
 @Composable
 fun OrderAmountScreen(context: Context, viewModel: DetailViewModel = viewModel()) {
-    val data = remember { viewModel.getGraphData(context, "orderAmount") }
+    val data = remember { viewModel.getGraphData(context, ordered = true, valueOnly = true) }
 
     MonthlyGraphCard(
         title = "배달한 금액",
