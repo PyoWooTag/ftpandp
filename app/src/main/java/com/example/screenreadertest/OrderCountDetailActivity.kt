@@ -1,6 +1,6 @@
 package com.example.screenreadertest
 
-import DetailViewModel
+import com.example.screenreadertest.DetailViewModel
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
@@ -30,7 +30,7 @@ class OrderCountDetailActivity : ComponentActivity() {
 
 @Composable
 fun OrderCountScreen(context: Context, viewModel: DetailViewModel = viewModel()) {
-    val data = remember { viewModel.getGraphData(context, "orderCount") }
+    val data = remember { viewModel.getGraphData(context, metric = "orderCount") }
 
     MonthlyGraphCard(
         title = "배달한 횟수",

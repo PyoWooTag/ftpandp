@@ -33,10 +33,11 @@ class MyAccessibilityService : AccessibilityService() {
     private var lastCheckTime = 0L
     private var overlayView: View? = null
     private var centerPopupView: View? = null
-    private var backgroundOverlayView: View? = null
-    private var isConfirmed = false         // overlay 생성 변수
+
+    private var isConfirmed = false
     private var targetButtonNode: AccessibilityNodeInfo? = null
-    private var ignoreUntil: Long = 0L  // 쿨다운 종료 시각
+    private var ignoreUntil: Long = 0L
+    private var backgroundOverlayView: View? = null
     private var isDeliver = false;
 
     private lateinit var windowManager: WindowManager // WindowManager 미리 선언
@@ -64,16 +65,16 @@ class MyAccessibilityService : AccessibilityService() {
         if (isDeliver && event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             rootInActiveWindow?.let { node ->
                 if (checkOrderConfirmedByTime(node)) {
-                    val manager = LocalStatsManager(applicationContext)
-                    manager.increment("orderCount", 1)
-                    manager.increment("orderAmount", lastDetectedAmount)
+                    val amount = lastDetectedAmount
+
+                    DeliveryEventManager.appendEvent(applicationContext, amount, true)
                     Log.d("AccessibilityService", "✅ 최종 주문 기록 완료")
 
                     isDeliver = false  // 중복 방지용 리셋
                 }
             }
         }
-        
+
         // 결제하기 버튼 탐지
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
@@ -182,7 +183,6 @@ class MyAccessibilityService : AccessibilityService() {
 
     private fun blockButtonWithOverlay(rect: Rect) {
         removeOverlay()
-
         if (isConfirmed) return
 
         overlayView = View(this).apply {
@@ -215,17 +215,11 @@ class MyAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-//            this.x = (screenWidth-rect.width())/2
-//            this.y = (screenHeight-rect.height())
-//            this.x = (screenWidth-rect.width())/2
-//            this.y = (screenHeight-rect.height())
             val navSize = windowManager.currentWindowMetrics
                 .windowInsets.getInsets(WindowInsets.Type.systemBars())
             this.x = rect.left
             this.y = rect.top
             Log.d("AccessibilityService", "y-start $navSize")
-//            this.y = rect.top - windowManager.currentWindowMetrics
-//                .windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top
             gravity = Gravity.TOP or Gravity.START
         }
 
@@ -309,12 +303,13 @@ class MyAccessibilityService : AccessibilityService() {
         }
         windowManager.addView(backgroundOverlayView, bgParams)
 
-        // 🔹 데이터 불러오기
-        val manager = LocalStatsManager(applicationContext)
-        val orderCount = manager.get("orderCount")
-        val orderAmount = manager.get("orderAmount")
         val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
         val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val yearMonth = "$year-$month"
+
+        // (stopCount, stopAmount, orderCount, orderAmount)
+        val (_, _, orderCount, orderAmount) = DeliveryEventManager.getMonthlyStats(applicationContext, yearMonth)
 
         // 🔹 강조 텍스트
         val summaryText = "${month}월 동안 배달 ${orderCount}회, ${"%,d".format(orderAmount)}원 사용\n"
@@ -360,10 +355,7 @@ class MyAccessibilityService : AccessibilityService() {
                 marginEnd = 10
             }
             setOnClickListener {
-                val amount = lastDetectedAmount
-                manager.increment("orderCount", 1)
-                manager.increment("orderAmount", amount)
-
+                // '결제' 누름 감지만 하고 대기
                 isConfirmed = true
                 isDeliver = true
                 ignoreUntil = System.currentTimeMillis() + 10_000
@@ -383,8 +375,8 @@ class MyAccessibilityService : AccessibilityService() {
             }
             setOnClickListener {
                 val amount = lastDetectedAmount
-                manager.increment("stopCount", 1)
-                manager.increment("savedAmount", amount)
+
+                DeliveryEventManager.appendEvent(applicationContext, amount, false)
 
                 val intent = Intent(Intent.ACTION_MAIN).apply {
                     addCategory(Intent.CATEGORY_HOME)
@@ -399,6 +391,7 @@ class MyAccessibilityService : AccessibilityService() {
 
         buttonRow.addView(yesButton)
         buttonRow.addView(noButton)
+
 
         // 🔹 팝업 뷰 구성
         val popup = LinearLayout(this).apply {

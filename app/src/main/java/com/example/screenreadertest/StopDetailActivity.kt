@@ -1,6 +1,6 @@
 package com.example.screenreadertest
 
-import DetailViewModel
+import com.example.screenreadertest.DetailViewModel
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
@@ -32,7 +32,7 @@ class StopDetailActivity : ComponentActivity() {
 
 @Composable
 fun StopScreen(context: Context, viewModel: DetailViewModel = viewModel()) {
-    val data = remember { viewModel.getGraphData(context, "stopCount") }
+    val data = remember { viewModel.getGraphData(context, metric = "stopCount") }
 
     MonthlyGraphCard(
         title = "멈춘 횟수",
