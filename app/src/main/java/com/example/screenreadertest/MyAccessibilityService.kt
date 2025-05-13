@@ -65,9 +65,9 @@ class MyAccessibilityService : AccessibilityService() {
         if (isDeliver && event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             rootInActiveWindow?.let { node ->
                 if (checkOrderConfirmedByTime(node)) {
-                    val manager = LocalStatsManager(applicationContext)
-                    manager.increment("orderCount", 1)
-                    manager.increment("orderAmount", lastDetectedAmount)
+                    val amount = lastDetectedAmount
+
+                    DeliveryEventManager.appendEvent(applicationContext, amount, true)
                     Log.d("AccessibilityService", "✅ 최종 주문 기록 완료")
 
                     isDeliver = false  // 중복 방지용 리셋
@@ -354,12 +354,7 @@ class MyAccessibilityService : AccessibilityService() {
                 marginEnd = 10
             }
             setOnClickListener {
-                val amount = lastDetectedAmount
-                manager.increment("orderCount", 1)
-                manager.increment("orderAmount", amount)
-
-                DeliveryEventManager.appendEvent(applicationContext, amount, true)
-
+                // '결제' 누름 감지만 하고 대기
                 isConfirmed = true
                 isDeliver = true
                 ignoreUntil = System.currentTimeMillis() + 10_000
@@ -379,8 +374,6 @@ class MyAccessibilityService : AccessibilityService() {
             }
             setOnClickListener {
                 val amount = lastDetectedAmount
-                manager.increment("stopCount", 1)
-                manager.increment("savedAmount", amount)
 
                 DeliveryEventManager.appendEvent(applicationContext, amount, false)
 
