@@ -186,8 +186,8 @@ class MyAccessibilityService : AccessibilityService() {
         if (isConfirmed) return
 
         overlayView = View(this).apply {
-            setBackgroundColor(Color.argb(150, 255, 0, 0))
-//            setBackgroundColor(Color.argb(0, 255, 0, 0))
+//            setBackgroundColor(Color.argb(150, 255, 0, 0))
+            setBackgroundColor(Color.argb(0, 255, 0, 0))
             isClickable = true
             isFocusable = true
             setOnTouchListener { v, event ->
