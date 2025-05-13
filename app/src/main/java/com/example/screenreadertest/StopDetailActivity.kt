@@ -32,7 +32,7 @@ class StopDetailActivity : ComponentActivity() {
 
 @Composable
 fun StopScreen(context: Context, viewModel: DetailViewModel = viewModel()) {
-    val data = remember { viewModel.getGraphData(context, ordered = true, valueOnly = false) }
+    val data = remember { viewModel.getGraphData(context, metric = "stopCount") }
 
     MonthlyGraphCard(
         title = "멈춘 횟수",

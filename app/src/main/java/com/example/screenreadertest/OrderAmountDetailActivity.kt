@@ -31,7 +31,7 @@ class OrderAmountDetailActivity : ComponentActivity() {
 
 @Composable
 fun OrderAmountScreen(context: Context, viewModel: DetailViewModel = viewModel()) {
-    val data = remember { viewModel.getGraphData(context, ordered = true, valueOnly = true) }
+    val data = remember { viewModel.getGraphData(context, metric = "orderAmount") }
 
     MonthlyGraphCard(
         title = "배달한 금액",

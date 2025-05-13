@@ -186,8 +186,8 @@ class MyAccessibilityService : AccessibilityService() {
         if (isConfirmed) return
 
         overlayView = View(this).apply {
-//            setBackgroundColor(Color.argb(150, 255, 0, 0))
-            setBackgroundColor(Color.argb(0, 255, 0, 0))
+            setBackgroundColor(Color.argb(150, 255, 0, 0))
+//            setBackgroundColor(Color.argb(0, 255, 0, 0))
             isClickable = true
             isFocusable = true
             setOnTouchListener { v, event ->
@@ -303,12 +303,13 @@ class MyAccessibilityService : AccessibilityService() {
         }
         windowManager.addView(backgroundOverlayView, bgParams)
 
-        // 🔹 데이터 불러오기
-        val manager = LocalStatsManager(applicationContext)
-        val orderCount = manager.get("orderCount")
-        val orderAmount = manager.get("orderAmount")
         val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
         val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val yearMonth = "$year-$month"
+
+        // (stopCount, stopAmount, orderCount, orderAmount)
+        val (_, _, orderCount, orderAmount) = DeliveryEventManager.getMonthlyStats(applicationContext, yearMonth)
 
         // 🔹 강조 텍스트
         val summaryText = "${month}월 동안 배달 ${orderCount}회, ${"%,d".format(orderAmount)}원 사용\n"
