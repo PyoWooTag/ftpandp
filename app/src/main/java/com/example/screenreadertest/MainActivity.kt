@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -30,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -79,23 +81,14 @@ fun MainScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(Modifier.height(24.dp))
-        Text("그 돈 씨", style = MaterialTheme.typography.headlineLarge)
-        Text("그 돈, Control", style = MaterialTheme.typography.bodyMedium)
+        Image(
+            painter = painterResource(id = R.drawable.title),
+            contentDescription = "그돈씨 TITLE",
+            modifier = Modifier
+                .height(150.dp)
+                .padding(bottom = 12.dp)
+        )
         Spacer(Modifier.height(48.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회") {
-                context.startActivity(Intent(context, OrderCountDetailActivity::class.java))
-            }
-            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원") {
-                context.startActivity(Intent(context, OrderAmountDetailActivity::class.java))
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -109,6 +102,20 @@ fun MainScreen(
             }
         }
 
+        Spacer(Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회") {
+                context.startActivity(Intent(context, OrderCountDetailActivity::class.java))
+            }
+            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원") {
+                context.startActivity(Intent(context, OrderAmountDetailActivity::class.java))
+            }
+        }
+
         Spacer(Modifier.height(32.dp))
 
         Button(
@@ -116,7 +123,10 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF444444),
+                contentColor = Color.White
+            )
         ) {
             Text("접근성 설정 열기", fontSize = 18.sp)
         }
