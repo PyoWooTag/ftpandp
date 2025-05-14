@@ -38,7 +38,7 @@ fun StopScreen(context: Context, viewModel: DetailViewModel = viewModel()) {
         title = "멈춘 횟수",
         unit = "회",
         graphData = data,
-        color = Color.Red,
+        color = Color(0xFFD9823F),
         onBack = { (context as Activity).finish() }
     )
 }

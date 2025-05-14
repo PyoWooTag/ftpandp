@@ -45,7 +45,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ScreenreadertestTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         context = this,
                         modifier = Modifier.padding(innerPadding)
@@ -150,7 +151,9 @@ fun InfoCard(label: String, number: String, unit: String = "", onClick: () -> Un
         modifier = Modifier
             .size(width = 160.dp, height = 160.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFD9823F) // ← 여기 색상 지정
+        ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
