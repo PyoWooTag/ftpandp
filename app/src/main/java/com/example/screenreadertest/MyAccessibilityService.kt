@@ -188,8 +188,8 @@ class MyAccessibilityService : AccessibilityService() {
         if (isConfirmed) return
 
         overlayView = View(this).apply {
-//            setBackgroundColor(Color.argb(150, 255, 0, 0))
-            setBackgroundColor(Color.argb(0, 255, 0, 0))
+            setBackgroundColor(Color.argb(150, 255, 0, 0))
+//            setBackgroundColor(Color.argb(0, 255, 0, 0))
             isClickable = true
             isFocusable = true
             setOnTouchListener { v, event ->
@@ -209,6 +209,9 @@ class MyAccessibilityService : AccessibilityService() {
         Log.d("AccessibilityService", "blockButtonWithOverlay, h: $screenHeight")
         Log.d("AccessibilityService", "Rect, $rect")
 
+        val fullInsets = windowManager.currentWindowMetrics
+            .windowInsets
+            .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
 
         val layoutParams = WindowManager.LayoutParams(
             rect.width(),
@@ -220,8 +223,14 @@ class MyAccessibilityService : AccessibilityService() {
             val navSize = windowManager.currentWindowMetrics
                 .windowInsets.getInsets(WindowInsets.Type.systemBars())
             this.x = rect.left
-            this.y = rect.top
-            Log.d("AccessibilityService", "y-start $navSize")
+//            this.y = rect.top
+            if (hasSoftNavigationBar())
+                this.y = rect.top - fullInsets.top
+            else
+                this.y = rect.top
+
+            Log.d("AccessibilityService", "NavSize $navSize")
+            Log.d("AccessibilityService", "SNav ${hasSoftNavigationBar()}")
             gravity = Gravity.TOP or Gravity.START
         }
 
@@ -248,6 +257,12 @@ class MyAccessibilityService : AccessibilityService() {
         Log.d("AccessibilityService", "bounds: w:${windowMetrics.bounds.width()}, h:${windowMetrics.bounds.height()}")
 
         return width to height
+    }
+
+    private fun hasSoftNavigationBar(): Boolean {
+        val metrics = windowManager.currentWindowMetrics
+        val navInsets = metrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars())
+        return navInsets.bottom > 80
     }
 
 //    private fun getStatusBarHeight(context: Context): Int {
