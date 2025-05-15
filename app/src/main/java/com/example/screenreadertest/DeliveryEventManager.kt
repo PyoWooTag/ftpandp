@@ -1,6 +1,8 @@
 package com.example.screenreadertest
 
 import android.content.Context
+import android.net.Uri
+import android.os.Environment
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -120,5 +122,23 @@ object DeliveryEventManager {
         }
 
         FileWriter(file, false).use { it.write(dataArray.toString(2)) }
+    }
+
+    /**
+     * Raw File Backup
+     */
+    fun exportJsonToUri(context: Context, uri: Uri) {
+        val sourceFile = File(context.filesDir, "ordered_data.json")
+        if (!sourceFile.exists()) return
+
+        val jsonText = sourceFile.readText().ifBlank { "[]" }
+
+        try {
+            context.contentResolver.openOutputStream(uri)?.bufferedWriter(Charsets.UTF_8)?.use { writer ->
+                writer.write(jsonText)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
