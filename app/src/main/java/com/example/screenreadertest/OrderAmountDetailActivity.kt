@@ -37,7 +37,7 @@ fun OrderAmountScreen(context: Context, viewModel: DetailViewModel = viewModel()
         title = "배달한 금액",
         unit = "원",
         graphData = data,
-        color = Color.Magenta,
+        color = Color(0xFFD9823F),
         onBack = { (context as Activity).finish() }
     )
 }

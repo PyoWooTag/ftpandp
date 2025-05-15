@@ -36,7 +36,7 @@ fun OrderCountScreen(context: Context, viewModel: DetailViewModel = viewModel())
         title = "배달한 횟수",
         unit = "회",
         graphData = data,
-        color = Color.Green,
+        color = Color(0xFFD9823F),
         onBack = { (context as Activity).finish() }
     )
 }

@@ -1,5 +1,6 @@
 package com.example.screenreadertest
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 @Composable
 fun MonthlyGraphCard(
@@ -27,8 +29,13 @@ fun MonthlyGraphCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("그돈씨", style = MaterialTheme.typography.headlineLarge)
-        Text("그 돈, Control", style = MaterialTheme.typography.bodyMedium)
+        Image(
+            painter = painterResource(id = R.drawable.title),
+            contentDescription = "그돈씨 TITLE",
+            modifier = Modifier
+                .height(150.dp)
+                .padding(bottom = 18.dp)
+        )
         Spacer(Modifier.height(16.dp))
 
         Card(

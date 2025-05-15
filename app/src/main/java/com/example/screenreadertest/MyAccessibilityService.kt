@@ -330,6 +330,7 @@ class MyAccessibilityService : AccessibilityService() {
 
         // 🔹 강조 텍스트
         val summaryText = "${month}월 동안 배달 ${orderCount}회, ${"%,d".format(orderAmount)}원 사용\n"
+
         val summarySpannable = SpannableString(summaryText).apply {
             val boldTarget = "${orderCount}회"
             val start = indexOf(boldTarget)
@@ -341,24 +342,25 @@ class MyAccessibilityService : AccessibilityService() {
         // 🔹 텍스트 뷰들
         val summaryTextView = TextView(this).apply {
             text = summarySpannable
-            textSize = 14f
-            setTextColor(Color.DKGRAY)
+            textSize = 18f // 🔹 기존 14f에서 증가
+            setTextColor(Color.BLACK) // 🔹 글자 색 더 선명하게
             gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 20) // 🔹 아래 여백 추가
         }
 
         val questionTextView = TextView(this).apply {
             text = "정말 주문하시겠습니까?"
-            textSize = 18f
+            textSize = 20f
             setTypeface(null, Typeface.BOLD)
             setTextColor(Color.BLACK)
             gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 20)
+            setPadding(0, 0, 0, 40)
         }
 
         // 🔹 버튼 가로 배치
         val buttonRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
+            gravity = Gravity.END // ← 오른쪽 정렬로 변경
             setPadding(0, 20, 0, 0)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -368,15 +370,24 @@ class MyAccessibilityService : AccessibilityService() {
 
         val yesButton = Button(this).apply {
             text = "네"
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                marginEnd = 10
+            textSize = 16f
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 20f // ← 모서리 둥글게
+                setTextColor(Color.BLACK)
             }
+            elevation = 0f // 🔹 그림자 없애기
+            stateListAnimator = null
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = 8 }
+            setPadding(12,4,12,4)
             setOnClickListener {
-                // '결제' 누름 감지만 하고 대기
                 isConfirmed = true
                 isDeliver = true
                 ignoreUntil = System.currentTimeMillis() + 10_000
-
                 removeOverlay()
                 removeCenterPopup()
                 overlayView?.isEnabled = false
@@ -387,33 +398,28 @@ class MyAccessibilityService : AccessibilityService() {
 
         val noButton = Button(this).apply {
             text = "아니요"
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                marginStart = 10
+            textSize = 16f
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 20f // ← 모서리 둥글게
+                setColor(Color.parseColor("#00C4C4"))
             }
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = 8 }
+            setPadding(12,4,12,4)
             setOnClickListener {
                 val now = System.currentTimeMillis()
-
-                // 5분 이내에 누른 경우 무시
                 if (now - lastNoClickTime < 5 * 60 * 1000) {
                     Log.d("AccessibilityService", "쿨다운 중: 아니요 클릭 무시")
                     removeCenterPopup()
                     return@setOnClickListener
                 }
-
                 lastNoClickTime = now
-
                 val amount = lastDetectedAmount
-
                 DeliveryEventManager.appendEvent(applicationContext, amount, false)
-
-                // deprecated
-//                val intent = Intent(Intent.ACTION_MAIN).apply {
-//                    addCategory(Intent.CATEGORY_HOME)
-//                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-//                }
-//                startActivity(intent)
-
-//                removeOverlay()
                 removeCenterPopup()
             }
         }
@@ -432,6 +438,15 @@ class MyAccessibilityService : AccessibilityService() {
                 cornerRadius = 30f
                 setColor(Color.WHITE)
             }
+            layoutParams = WindowManager.LayoutParams(
+                800, // ← 고정 너비 (또는 WRAP_CONTENT로 넉넉하게)
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.CENTER
+            }
 
             addView(summaryTextView)
             addView(questionTextView)
@@ -439,7 +454,7 @@ class MyAccessibilityService : AccessibilityService() {
         }
 
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            750,  // ← 팝업 가로 크기 (픽셀) 직접 지정
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
