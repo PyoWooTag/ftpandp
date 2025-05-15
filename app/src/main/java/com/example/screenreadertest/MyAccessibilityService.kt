@@ -188,8 +188,8 @@ class MyAccessibilityService : AccessibilityService() {
         if (isConfirmed) return
 
         overlayView = View(this).apply {
-//            setBackgroundColor(Color.argb(150, 255, 0, 0))
-            setBackgroundColor(Color.argb(0, 255, 0, 0))
+           setBackgroundColor(Color.argb(150, 255, 0, 0))
+//           setBackgroundColor(Color.argb(0, 255, 0, 0))
             isClickable = true
             isFocusable = true
             setOnTouchListener { v, event ->
@@ -254,7 +254,7 @@ class MyAccessibilityService : AccessibilityService() {
 //        val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
 //        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
 //    }
-
+//
 //    private fun getNavigationBarHeight(context: Context): Int {
 //        val resourceId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
 //        return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
