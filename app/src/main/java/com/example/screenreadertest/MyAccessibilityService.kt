@@ -188,8 +188,8 @@ class MyAccessibilityService : AccessibilityService() {
         if (isConfirmed) return
 
         overlayView = View(this).apply {
-            setBackgroundColor(Color.argb(150, 255, 0, 0))
-//            setBackgroundColor(Color.argb(0, 255, 0, 0))
+//            setBackgroundColor(Color.argb(150, 255, 0, 0))
+            setBackgroundColor(Color.argb(0, 255, 0, 0))
             isClickable = true
             isFocusable = true
             setOnTouchListener { v, event ->
@@ -225,7 +225,7 @@ class MyAccessibilityService : AccessibilityService() {
             this.x = rect.left
 //            this.y = rect.top
             if (hasSoftNavigationBar())
-                this.y = rect.top - fullInsets.top
+                this.y = rect.top - fullInsets.top  // softkey 있는 환경
             else
                 this.y = rect.top
 
