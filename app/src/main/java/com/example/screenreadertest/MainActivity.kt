@@ -146,6 +146,9 @@ fun MainScreen(
 
                 // Test Dummy
 //                DeliveryEventManager.insertDummyData(context)
+
+                // Reset Data
+//                DeliveryEventManager.resetAllEvents(context)
                       },
             modifier = Modifier
                 .fillMaxWidth(0.9f)

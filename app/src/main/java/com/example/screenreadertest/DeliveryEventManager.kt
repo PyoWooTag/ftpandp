@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -37,7 +39,10 @@ object DeliveryEventManager {
         val file = getDataFile(context)
         val currentArray = JSONArray(file.readText())
 
+        val uid = Firebase.auth.currentUser?.uid ?: "anonymous"
+
         val event = JSONObject().apply {
+            put("uid", uid)
             put("orderDate", OffsetDateTime.now().toString())
             put("orderAmount", amount)
             put("ordered", if (ordered) 1 else 0)
@@ -113,7 +118,10 @@ object DeliveryEventManager {
                     .withMinute(Random.nextInt(0, 60))
                     .withSecond(Random.nextInt(0, 60))
 
+                val uid = Firebase.auth.currentUser?.uid ?: "anonymous"
+
                 val event = JSONObject().apply {
+                    put("uid", uid)
                     put("orderDate", fakeDate.toString())
                     put("orderAmount", amount)
                     put("ordered", isOrdered)
@@ -124,6 +132,15 @@ object DeliveryEventManager {
         }
 
         FileWriter(file, false).use { it.write(dataArray.toString(2)) }
+    }
+
+    /**
+     * Reset Data
+     */
+    fun resetAllEvents(context: Context) {
+        val file = File(context.filesDir, FILE_NAME)
+        file.writeText("[]")  // 빈 JSON 배열로 초기화
+        Log.i("DeliveryEventManager", "$FILE_NAME 초기화 완료")
     }
 
     /**
