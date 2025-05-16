@@ -43,6 +43,7 @@ object DeliveryEventManager {
             put("ordered", if (ordered) 1 else 0)
         }
 
+        // 여기다 DB 추가 수정
         currentArray.put(event)
         FileWriter(file, false).use { it.write(currentArray.toString(2)) }
     }
