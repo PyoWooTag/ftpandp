@@ -119,10 +119,10 @@ fun MainScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            InfoCard("멈춘 횟수", stats["stopCount"] ?: "-", "회",fontSize = 18.sp) {
+            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회",fontSize = 18.sp) {
                 context.startActivity(Intent(context, StopDetailActivity::class.java))
             }
-            InfoCard("아낀 금액", stats["savedAmount"] ?: "-", "원",fontSize = 18.sp) {
+            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원",fontSize = 18.sp) {
                 context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
             }
         }
