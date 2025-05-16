@@ -40,6 +40,9 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.screenreadertest.ui.theme.ScreenreadertestTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.auth.ktx.auth
 
 
 class MainActivity : ComponentActivity() {
@@ -180,6 +183,22 @@ fun MainScreen(
 }
 
 fun openAccessibilitySettings(context: Context) {
+    val auth = Firebase.auth
+
+    auth.signInAnonymously()
+        .addOnCompleteListener()
+        { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d("FirstLoginSuccess", "로그인 성공")
+                val user = auth.currentUser
+            } else {
+                // If sign in fails, display a message to the user.
+                Log.d("FirstLoginFailure", "로그인 실패")
+            }
+        }
+    Log.d("UserID", "auth.currentUser?.uid")
+
     Log.d("AccessibilityService", "접근성 설정 버튼 클릭")
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
     context.startActivity(intent)
