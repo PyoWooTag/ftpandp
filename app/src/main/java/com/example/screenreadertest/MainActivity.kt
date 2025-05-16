@@ -149,6 +149,9 @@ fun MainScreen(
 
                 // Test Dummy
 //                DeliveryEventManager.insertDummyData(context)
+
+                // Reset Data
+//                DeliveryEventManager.resetAllEvents(context)
                       },
             modifier = Modifier
                 .fillMaxWidth(0.9f)
@@ -193,15 +196,15 @@ fun openAccessibilitySettings(context: Context) {
         { task ->
             if (task.isSuccessful) {
                 // Sign in success, update UI with the signed-in user's information
-                Log.d("FirstLoginSuccess", "로그인 성공")
+                Log.d("LoginUser", "로그인 성공")
                 val user = auth.currentUser
             } else {
                 // If sign in fails, display a message to the user.
-                Log.d("FirstLoginFailure", "로그인 실패")
+                Log.d("LoginUser", "로그인 실패")
             }
-        }
-    Log.d("UserID", "auth.currentUser?.uid")
 
+            Log.d("LoginUser", "UID: ${auth.currentUser?.uid ?: "No user"}")
+        }
     Log.d("AccessibilityService", "접근성 설정 버튼 클릭")
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
     context.startActivity(intent)
