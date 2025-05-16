@@ -1,6 +1,9 @@
 package com.example.screenreadertest
 
 import android.content.Context
+import android.net.Uri
+import android.os.Environment
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -40,6 +43,7 @@ object DeliveryEventManager {
             put("ordered", if (ordered) 1 else 0)
         }
 
+        // 여기다 DB 추가 수정
         currentArray.put(event)
         FileWriter(file, false).use { it.write(currentArray.toString(2)) }
     }
@@ -88,7 +92,7 @@ object DeliveryEventManager {
      * 테스트 dummy 생성 함수
      */
     fun insertDummyData(context: Context) {
-        val file = File(context.filesDir, "ordered_data.json")
+        val file = File(context.filesDir, FILE_NAME)
         val dataArray = JSONArray()
 
         val now = OffsetDateTime.now()
@@ -120,5 +124,30 @@ object DeliveryEventManager {
         }
 
         FileWriter(file, false).use { it.write(dataArray.toString(2)) }
+    }
+
+    /**
+     * Raw File Backup
+     */
+    fun exportJsonToUri(context: Context, uri: Uri) {
+        Log.d("CheckFile", "$FILE_NAME 저장 세션")
+        val sourceFile = File(context.filesDir, FILE_NAME)
+        if (!sourceFile.exists()) return
+
+        Log.d("CheckFile", "$FILE_NAME 찾음.")
+
+        val file = File(context.filesDir, "ordered_data.json")
+        Log.d("CheckFile", "파일 크기: ${file.length()} 바이트")
+        Log.d("CheckFile", "내용: ${file.readText()}")
+
+        val jsonText = sourceFile.readText().ifBlank { "[]" }
+
+        try {
+            context.contentResolver.openOutputStream(uri)?.bufferedWriter(Charsets.UTF_8)?.use { writer ->
+                writer.write(jsonText)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
