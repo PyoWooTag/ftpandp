@@ -1,5 +1,6 @@
 package com.example.screenreadertest
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.graphics.Color
@@ -7,6 +8,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.screenreadertest.ui.theme.ScreenreadertestTheme
@@ -40,6 +43,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        public const val REQUEST_CODE_EXPORT = 1001
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -52,6 +59,17 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_EXPORT && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+                DeliveryEventManager.exportJsonToUri(this@MainActivity, uri)
+                Toast.makeText(this@MainActivity, "백업 완료!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -135,6 +153,28 @@ fun MainScreen(
             )
         ) {
             Text("접근성 설정 열기", fontSize = 18.sp)
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+                putExtra(Intent.EXTRA_TITLE, "ordered_data_backup.json")
+            }
+            (context as? Activity)?.startActivityForResult(intent, MainActivity.REQUEST_CODE_EXPORT)
+        },
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF444444),
+                contentColor = Color.White
+            )
+        ) {
+            Text("백업 파일 저장하기", fontSize = 18.sp)
         }
     }
 }
