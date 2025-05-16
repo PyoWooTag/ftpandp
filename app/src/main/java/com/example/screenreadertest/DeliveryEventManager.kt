@@ -3,6 +3,7 @@ package com.example.screenreadertest
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -90,7 +91,7 @@ object DeliveryEventManager {
      * 테스트 dummy 생성 함수
      */
     fun insertDummyData(context: Context) {
-        val file = File(context.filesDir, "ordered_data.json")
+        val file = File(context.filesDir, FILE_NAME)
         val dataArray = JSONArray()
 
         val now = OffsetDateTime.now()
@@ -128,8 +129,15 @@ object DeliveryEventManager {
      * Raw File Backup
      */
     fun exportJsonToUri(context: Context, uri: Uri) {
-        val sourceFile = File(context.filesDir, "ordered_data.json")
+        Log.d("CheckFile", "$FILE_NAME 저장 세션")
+        val sourceFile = File(context.filesDir, FILE_NAME)
         if (!sourceFile.exists()) return
+
+        Log.d("CheckFile", "$FILE_NAME 찾음.")
+
+        val file = File(context.filesDir, "ordered_data.json")
+        Log.d("CheckFile", "파일 크기: ${file.length()} 바이트")
+        Log.d("CheckFile", "내용: ${file.readText()}")
 
         val jsonText = sourceFile.readText().ifBlank { "[]" }
 

@@ -44,7 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     companion object {
-        private const val REQUEST_CODE_EXPORT = 1001
+        public const val REQUEST_CODE_EXPORT = 1001
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,15 +155,26 @@ fun MainScreen(
             Text("접근성 설정 열기", fontSize = 18.sp)
         }
 
-        Button(onClick = {
+        Spacer(Modifier.height(16.dp))
+
+        Button(
+            onClick = {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "application/json"
                 putExtra(Intent.EXTRA_TITLE, "ordered_data_backup.json")
             }
-            context.startActivity(intent)
-        }) {
-            Text("백업 파일 저장하기")
+            (context as? Activity)?.startActivityForResult(intent, MainActivity.REQUEST_CODE_EXPORT)
+        },
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF444444),
+                contentColor = Color.White
+            )
+        ) {
+            Text("백업 파일 저장하기", fontSize = 18.sp)
         }
     }
 }
