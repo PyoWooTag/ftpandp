@@ -13,6 +13,7 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.accessibility.AccessibilityEvent
 import android.util.Log
@@ -327,6 +328,60 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
+    private fun getUsageSummaryViews(
+        context: Context,
+        highlightColor: Int
+    ): Triple<TextView, TextView, TextView> {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val yearMonth = "$year-$month"
+
+        val (_, _, orderCount, orderAmount) = DeliveryEventManager.getMonthlyStats(context, yearMonth)
+        val countText = "$orderCount"
+        val amountText = "%,d".format(orderAmount)
+        val summaryText = "배달 ${countText}회 ${amountText}원 사용"
+
+        val summarySpannable = SpannableString(summaryText).apply {
+            val boldTargets = listOf(countText, amountText)
+            for (target in boldTargets) {
+                val start = indexOf(target)
+                if (start >= 0) {
+                    setSpan(StyleSpan(Typeface.BOLD), start, start + target.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(ForegroundColorSpan(highlightColor), start, start + target.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+        }
+
+        val questionTextView = TextView(context).apply {
+            text = "정말로 주문하시겠습니까?"
+            textSize = 18f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.parseColor("#444444"))
+            gravity = Gravity.CENTER
+            setPadding(0, 12, 0, 6)
+        }
+
+        val subTextView = TextView(context).apply {
+            text = "지난 1개월 동안 주문 내역"
+            textSize = 14f
+            setTextColor(Color.parseColor("#999999"))
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 10)
+        }
+
+        val summaryTextView = TextView(context).apply {
+            text = summarySpannable
+            textSize = 22f
+            setTextColor(Color.parseColor("#444444"))
+            isSingleLine = true
+            maxLines = 1
+            gravity = Gravity.CENTER
+        }
+
+        return Triple(questionTextView, subTextView, summaryTextView)
+    }
+
     private fun showDefaultPopup() {
         // 🔹 배경 오버레이 (반투명)
         backgroundOverlayView = View(this).apply {
@@ -344,47 +399,23 @@ class MyAccessibilityService : AccessibilityService() {
         }
         windowManager.addView(backgroundOverlayView, bgParams)
 
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
-        val yearMonth = "$year-$month"
-
-        // (stopCount, stopAmount, orderCount, orderAmount)
-        val (_, _, orderCount, orderAmount) = DeliveryEventManager.getMonthlyStats(applicationContext, yearMonth)
-
-        // 🔹 강조 텍스트
-        val summaryText = "${month}월 동안 배달 ${orderCount}회, ${"%,d".format(orderAmount)}원 사용\n"
-
-        val summarySpannable = SpannableString(summaryText).apply {
-            val boldTarget = "${orderCount}회"
-            val start = indexOf(boldTarget)
-            if (start >= 0) {
-                setSpan(StyleSpan(Typeface.BOLD), start, start + boldTarget.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            }
-        }
-
-        // 🔹 텍스트 뷰들
-        val summaryTextView = TextView(this).apply {
-            text = summarySpannable
-            textSize = 18f // 🔹 기존 14f에서 증가
-            setTextColor(Color.BLACK) // 🔹 글자 색 더 선명하게
+        val highlightColor = Color.parseColor("#00C4C4")
+        val (questionTextView, subTextView, summaryTextView) = getUsageSummaryViews(this, highlightColor)
+        questionTextView.setPadding(0, 0, 0, 60)
+        subTextView.setPadding(0, 0, 0, 10)
+        summaryTextView.setPadding(0, 0, 0, 40)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 20) // 🔹 아래 여백 추가
-        }
-
-        val questionTextView = TextView(this).apply {
-            text = "정말 주문하시겠습니까?"
-            textSize = 20f
-            setTypeface(null, Typeface.BOLD)
-            setTextColor(Color.BLACK)
-            gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 40)
+            addView(questionTextView)
+            addView(subTextView)
+            addView(summaryTextView)
         }
 
         // 🔹 버튼 가로 배치
         val buttonRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END // ← 오른쪽 정렬로 변경
+            gravity = Gravity.END
             setPadding(0, 20, 0, 0)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -398,7 +429,7 @@ class MyAccessibilityService : AccessibilityService() {
             setTextColor(Color.WHITE)
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = 20f // ← 모서리 둥글게
+                cornerRadius = 20f
                 setTextColor(Color.BLACK)
             }
             elevation = 0f // 🔹 그림자 없애기
@@ -452,18 +483,19 @@ class MyAccessibilityService : AccessibilityService() {
         buttonRow.addView(noButton)
 
 
-        // 🔹 팝업 뷰 구성
+        val (screenWidth, _) = getScreenSize()
+        val desiredWidth = (screenWidth * 0.95).toInt()
+
         val popup = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.WHITE)
-            setPadding(40, 40, 40, 40)
             gravity = Gravity.CENTER
+            setPadding(50, 50, 50, 50)
             background = GradientDrawable().apply {
                 cornerRadius = 30f
                 setColor(Color.WHITE)
             }
             layoutParams = WindowManager.LayoutParams(
-                800, // ← 고정 너비 (또는 WRAP_CONTENT로 넉넉하게)
+                desiredWidth,  // 고정값 대신 해상도 기준 비율
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
@@ -472,9 +504,8 @@ class MyAccessibilityService : AccessibilityService() {
                 gravity = Gravity.CENTER
             }
 
-            addView(summaryTextView)
-            addView(questionTextView)
-            addView(buttonRow)
+            addView(layout)     // 텍스트 블록
+            addView(buttonRow)  // 버튼 줄
         }
 
         val params = WindowManager.LayoutParams(
@@ -506,40 +537,23 @@ class MyAccessibilityService : AccessibilityService() {
         }
         windowManager.addView(backgroundOverlayView, bgParams)
 
-// 📆 날짜 통계 정보 준비
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
-        val yearMonth = "$year-$month"
-        val (_, _, orderCount, orderAmount) = DeliveryEventManager.getMonthlyStats(applicationContext, yearMonth)
-        val summaryText = "${month}월 동안 배달 ${orderCount}회, ${"%,d".format(orderAmount)}원 사용"
+        // ✅ 강조 색상
+        val highlightColor = Color.parseColor("#00AEEF")
+        val (questionTextView, subTextView, summaryTextView) = getUsageSummaryViews(this, highlightColor)
+        questionTextView.setPadding(0, 0, 0, 60)
+        subTextView.setPadding(0, 0, 0, 10)
+        summaryTextView.setPadding(0, 0, 0, 40)
 
-// ✅ 통계 텍스트 (orderCount 강조)
-        val summarySpannable = SpannableString(summaryText).apply {
-            val boldTarget = "${orderCount}회"
-            val start = indexOf(boldTarget)
-            if (start >= 0) {
-                setSpan(StyleSpan(Typeface.BOLD), start, start + boldTarget.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            }
-        }
-        val summaryTextView = TextView(this).apply {
-            text = summarySpannable
-            textSize = 18f
-            setTextColor(Color.BLACK)
+        // ✅ 상단 콘텐츠 재정리
+        val contentLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
+            setPadding(50, 50, 50, 30)
+            addView(questionTextView)
+            addView(subTextView)
+            addView(summaryTextView)
         }
 
-// ✅ 질문 텍스트
-        val questionTextView = TextView(this).apply {
-            text = "정말 주문하시겠습니까?"
-            textSize = 20f
-            setTypeface(null, Typeface.BOLD)
-            setTextColor(Color.BLACK)
-            gravity = Gravity.CENTER
-            setPadding(0, 20, 0, 20)
-        }
-
-// ✅ 버튼 위 경계선
         val dividerView = View(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -548,7 +562,6 @@ class MyAccessibilityService : AccessibilityService() {
             setBackgroundColor(Color.parseColor("#DDDDDD"))
         }
 
-// ✅ "네" 버튼
         val yesButton = TextView(this).apply {
             text = "네"
             gravity = Gravity.CENTER
@@ -568,7 +581,6 @@ class MyAccessibilityService : AccessibilityService() {
             }
         }
 
-// ✅ "아니요" 버튼
         val noButton = TextView(this).apply {
             text = "아니요"
             gravity = Gravity.CENTER
@@ -580,14 +592,13 @@ class MyAccessibilityService : AccessibilityService() {
                 cornerRadii = floatArrayOf(
                     0f, 0f,   // top-left
                     0f, 0f,
-                    30f, 30f ,// top-right
+                    10f, 10f ,// top-right
                     0f, 0f,   // bottom-left
-                     // bottom-right ✅ 오른쪽 아래만 둥글게
                 )
                 setColor(Color.parseColor("#00AEEF"))
             }
 
-            clipToOutline = true // ✅ 핵심: outline을 클립해야 실제로 둥글게 보임
+            clipToOutline = true
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
             setOnClickListener {
                 val now = System.currentTimeMillis()
@@ -603,7 +614,7 @@ class MyAccessibilityService : AccessibilityService() {
             }
         }
         val buttonHeight = (45 * resources.displayMetrics.density).toInt()
-// ✅ 버튼 영역
+// 버튼 영역
         val buttonRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -615,19 +626,11 @@ class MyAccessibilityService : AccessibilityService() {
             addView(noButton)
         }
 
-// ✅ 상단 콘텐츠 (패딩 포함)
-        val contentLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(50, 60, 50, 30)
-            addView(summaryTextView)
-            addView(questionTextView)
-        }
-
-// ✅ 최종 팝업 뷰
+// 최종 팝업 뷰
         val popup = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = GradientDrawable().apply {
-                cornerRadius = 30f // 모든 모서리 둥글게
+                cornerRadius = 10f // 모든 모서리 둥글게
                 setColor(Color.WHITE)
             }
             layoutParams = WindowManager.LayoutParams(
@@ -640,7 +643,7 @@ class MyAccessibilityService : AccessibilityService() {
                 gravity = Gravity.CENTER
             }
 
-            addView(contentLayout)  // 위쪽 텍스트
+            addView(contentLayout)
             addView(dividerView)    // 경계선
             addView(buttonRow)      // 버튼
         }
