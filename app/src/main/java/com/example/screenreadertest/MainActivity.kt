@@ -3,12 +3,10 @@ package com.example.screenreadertest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import androidx.compose.ui.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import androidx.compose.ui.unit.sp
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,8 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
@@ -37,13 +33,10 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.screenreadertest.ui.theme.ScreenreadertestTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.auth.ktx.auth
 
@@ -101,7 +94,7 @@ fun MainScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFD488))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
 
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -160,8 +153,8 @@ fun MainScreen(
                 .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF444444),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
             Text("접근성 설정 열기", fontSize = 18.sp)
@@ -182,8 +175,8 @@ fun MainScreen(
                 .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF444444),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
             Text("백업 파일 저장하기", fontSize = 18.sp)
@@ -227,7 +220,7 @@ fun InfoCard(
         modifier = Modifier
             .size(width = 170.dp, height = 150.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFD9823F)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
@@ -242,21 +235,21 @@ fun InfoCard(
                 text = label,
                 fontSize = fontSize,
                 fontWeight = FontWeight.Medium,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = number,
-                    fontSize = numberFontSize, // 🔥 이게 핵심
+                    fontSize = numberFontSize,
                     fontWeight = FontWeight.Bold,
-
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = unit,
                     fontSize = fontSize,
-
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
             }
         }
