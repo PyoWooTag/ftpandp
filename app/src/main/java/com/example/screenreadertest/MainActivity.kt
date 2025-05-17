@@ -225,7 +225,7 @@ fun InfoCard(
 
     Card(
         modifier = Modifier
-            .size(width = 150.dp, height = 150.dp)
+            .size(width = 170.dp, height = 150.dp)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFFD9823F)),
         shape = RoundedCornerShape(16.dp),

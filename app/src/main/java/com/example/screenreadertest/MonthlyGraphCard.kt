@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.text.NumberFormat
 
 @Composable
 fun MonthlyGraphCard(
@@ -57,7 +58,7 @@ fun MonthlyGraphCard(
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(0.dp),
             colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF1F8E9) // 연한 초록 배경 예시
+                    containerColor = Color(0xFFF4C176)
             )
         ) {
             Column(
@@ -70,7 +71,8 @@ fun MonthlyGraphCard(
                     fontWeight = FontWeight.Bold
                 )
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text("$current", style = MaterialTheme.typography.headlineLarge)
+                    val formatted = NumberFormat.getNumberInstance().format(current)
+                    Text(text = formatted, style = MaterialTheme.typography.headlineLarge)
                     Spacer(Modifier.width(4.dp))
                     Text(unit)
                 }
