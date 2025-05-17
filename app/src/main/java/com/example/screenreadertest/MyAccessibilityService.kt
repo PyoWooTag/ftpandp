@@ -42,6 +42,8 @@ class MyAccessibilityService : AccessibilityService() {
     private var isDeliver = false;
     private var lastNoClickTime = 0L
 
+    private var currentPackageName: String? = null
+
     private lateinit var windowManager: WindowManager // WindowManager 미리 선언
 
     override fun onServiceConnected() {
@@ -53,6 +55,9 @@ class MyAccessibilityService : AccessibilityService() {
         event ?: return
 
         val packageName = event.packageName?.toString() ?: return
+
+
+        currentPackageName = packageName
 
         val targetApps = setOf(
             "com.example.screenreadertest",
@@ -109,6 +114,8 @@ class MyAccessibilityService : AccessibilityService() {
         }
     }
 
+
+
     override fun onInterrupt() {
         Log.d("AccessibilityService", "서비스 중단됨")
     }
@@ -127,6 +134,7 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     private fun checkButtons(node: AccessibilityNodeInfo) {
+        Log.d("AccessibilityService", "🔍 현재 패키지 이름: $currentPackageName")
         val currentTime = System.currentTimeMillis()
 
         if (currentTime < ignoreUntil) {
@@ -304,6 +312,22 @@ class MyAccessibilityService : AccessibilityService() {
     private fun showCenterPopup() {
         if (centerPopupView != null) return
 
+        // ✅ 버튼 노드가 존재할 때 그 노드의 windowId → source 패키지를 우선적으로 사용
+        val sourcePackageName = targetButtonNode?.packageName?.toString()
+            ?: currentPackageName
+            ?: rootInActiveWindow?.packageName?.toString()
+            ?: ""
+
+        Log.d("PopupDebug", "💥 showCenterPopup 호출됨, sourcePackage = $sourcePackageName")
+
+        if (sourcePackageName.contains("coupang", ignoreCase = true)) {
+            showCoupangEatsPopup()
+        } else {
+            showDefaultPopup()
+        }
+    }
+
+    private fun showDefaultPopup() {
         // 🔹 배경 오버레이 (반투명)
         backgroundOverlayView = View(this).apply {
             setBackgroundColor(Color.argb(120, 0, 0, 0))
@@ -467,6 +491,164 @@ class MyAccessibilityService : AccessibilityService() {
         centerPopupView = popup
     }
 
+    private fun showCoupangEatsPopup() {
+        val backgroundOverlayView = View(this).apply {
+            setBackgroundColor(Color.argb(120, 0, 0, 0)) // 반투명 배경
+        }
+        val bgParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.CENTER
+        }
+        windowManager.addView(backgroundOverlayView, bgParams)
+
+// 📆 날짜 통계 정보 준비
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val yearMonth = "$year-$month"
+        val (_, _, orderCount, orderAmount) = DeliveryEventManager.getMonthlyStats(applicationContext, yearMonth)
+        val summaryText = "${month}월 동안 배달 ${orderCount}회, ${"%,d".format(orderAmount)}원 사용"
+
+// ✅ 통계 텍스트 (orderCount 강조)
+        val summarySpannable = SpannableString(summaryText).apply {
+            val boldTarget = "${orderCount}회"
+            val start = indexOf(boldTarget)
+            if (start >= 0) {
+                setSpan(StyleSpan(Typeface.BOLD), start, start + boldTarget.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+        val summaryTextView = TextView(this).apply {
+            text = summarySpannable
+            textSize = 18f
+            setTextColor(Color.BLACK)
+            gravity = Gravity.CENTER
+        }
+
+// ✅ 질문 텍스트
+        val questionTextView = TextView(this).apply {
+            text = "정말 주문하시겠습니까?"
+            textSize = 20f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.BLACK)
+            gravity = Gravity.CENTER
+            setPadding(0, 20, 0, 20)
+        }
+
+// ✅ 버튼 위 경계선
+        val dividerView = View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1
+            )
+            setBackgroundColor(Color.parseColor("#DDDDDD"))
+        }
+
+// ✅ "네" 버튼
+        val yesButton = TextView(this).apply {
+            text = "네"
+            gravity = Gravity.CENTER
+            textSize = 16f
+            setTextColor(Color.parseColor("#666666")) // 회색 글자
+            setBackgroundColor(Color.TRANSPARENT) // 배경은 흰색
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+            setOnClickListener {
+                isConfirmed = true
+                isDeliver = true
+                ignoreUntil = System.currentTimeMillis() + 10_000
+                removeOverlay()
+                removeCenterPopup()
+                overlayView?.isEnabled = false
+                targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                targetButtonNode = null
+            }
+        }
+
+// ✅ "아니요" 버튼
+        val noButton = TextView(this).apply {
+            text = "아니요"
+            gravity = Gravity.CENTER
+            textSize = 16f
+            setTextColor(Color.WHITE)
+
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadii = floatArrayOf(
+                    0f, 0f,   // top-left
+                    0f, 0f,
+                    30f, 30f ,// top-right
+                    0f, 0f,   // bottom-left
+                     // bottom-right ✅ 오른쪽 아래만 둥글게
+                )
+                setColor(Color.parseColor("#00AEEF"))
+            }
+
+            clipToOutline = true // ✅ 핵심: outline을 클립해야 실제로 둥글게 보임
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+            setOnClickListener {
+                val now = System.currentTimeMillis()
+                if (now - lastNoClickTime < 5 * 60 * 1000) {
+                    Log.d("AccessibilityService", "쿨다운 중: 아니요 클릭 무시")
+                    removeCenterPopup()
+                    return@setOnClickListener
+                }
+                lastNoClickTime = now
+                val amount = lastDetectedAmount
+                DeliveryEventManager.appendEvent(applicationContext, amount, false)
+                removeCenterPopup()
+            }
+        }
+        val buttonHeight = (45 * resources.displayMetrics.density).toInt()
+// ✅ 버튼 영역
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                buttonHeight
+            )
+            weightSum = 2f
+            addView(yesButton)
+            addView(noButton)
+        }
+
+// ✅ 상단 콘텐츠 (패딩 포함)
+        val contentLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 60, 50, 30)
+            addView(summaryTextView)
+            addView(questionTextView)
+        }
+
+// ✅ 최종 팝업 뷰
+        val popup = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable().apply {
+                cornerRadius = 30f // 모든 모서리 둥글게
+                setColor(Color.WHITE)
+            }
+            layoutParams = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.CENTER
+            }
+
+            addView(contentLayout)  // 위쪽 텍스트
+            addView(dividerView)    // 경계선
+            addView(buttonRow)      // 버튼
+        }
+
+        windowManager.addView(popup, popup.layoutParams)
+        centerPopupView = popup
+    }
+
     private fun removeCenterPopup() {
         centerPopupView?.let {
             windowManager.removeView(it)
@@ -477,6 +659,8 @@ class MyAccessibilityService : AccessibilityService() {
             backgroundOverlayView = null
         }
     }
+
+
 
     /**
      * 실제 배달 주문 확인을 위하여 '(정수)분' 키워드 확인
@@ -508,4 +692,7 @@ class MyAccessibilityService : AccessibilityService() {
 
         return false
     }
+
+
+
 }

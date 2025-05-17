@@ -29,6 +29,7 @@ fun MonthlyGraphCard(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFFFD488))
             .padding(16.dp)
     ) {
         // (1) 상단 타이틀
@@ -43,6 +44,7 @@ fun MonthlyGraphCard(
                 contentDescription = "그돈씨 TITLE",
                 modifier = Modifier
                     .height(150.dp)
+                    .padding(bottom = 12.dp)
             )
         }
         Spacer(modifier = Modifier.height(40.dp))
@@ -53,7 +55,10 @@ fun MonthlyGraphCard(
                 .offset(y = 30.dp) // 아래로 더 내림
                 .fillMaxWidth(0.9f),
             shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(8.dp)
+            elevation = CardDefaults.cardElevation(0.dp),
+            colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFF1F8E9) // 연한 초록 배경 예시
+            )
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -114,10 +119,10 @@ fun MonthlyGraphCard(
         Button(
             onClick = onBack,
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(0.8f)
                 .height(50.dp)
                 .align(Alignment.BottomCenter)
-                .offset(y = (-120).dp),
+                .offset(y = (-140).dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF444444),
                 contentColor = Color.White

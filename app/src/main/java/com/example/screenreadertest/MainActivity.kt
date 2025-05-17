@@ -101,7 +101,9 @@ fun MainScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFFFD488))
             .padding(16.dp),
+
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -119,10 +121,10 @@ fun MainScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회",fontSize = 18.sp) {
+            InfoCard("멈춘 횟수", stats["stopCount"] ?: "-", "회", fontSize = 18.sp) {
                 context.startActivity(Intent(context, StopDetailActivity::class.java))
             }
-            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원",fontSize = 18.sp) {
+            InfoCard("아낀 금액", stats["savedAmount"] ?: "-", "원", fontSize = 18.sp) {
                 context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
             }
         }
@@ -133,10 +135,11 @@ fun MainScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            InfoCard("멈춘 횟수", stats["stopCount"] ?: "-", "회", fontSize = 18.sp) {
+            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회",fontSize = 18.sp){
                 context.startActivity(Intent(context, StopDetailActivity::class.java))
             }
-            InfoCard("아낀 금액", stats["savedAmount"] ?: "-", "원", fontSize = 18.sp) {
+            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원",fontSize = 18.sp)
+             {
                 context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
             }
         }
@@ -154,7 +157,7 @@ fun MainScreen(
 //                DeliveryEventManager.resetAllEvents(context)
                       },
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF444444),
@@ -176,7 +179,7 @@ fun MainScreen(
             (context as? Activity)?.startActivityForResult(intent, MainActivity.REQUEST_CODE_EXPORT)
         },
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF444444),
@@ -222,11 +225,11 @@ fun InfoCard(
 
     Card(
         modifier = Modifier
-            .size(width = 160.dp, height = 160.dp)
+            .size(width = 150.dp, height = 150.dp)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFFD9823F)),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
             modifier = Modifier
