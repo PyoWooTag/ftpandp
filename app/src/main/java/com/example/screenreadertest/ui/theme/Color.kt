@@ -14,4 +14,5 @@ val GDSBackground = Color(0xFFFFD488)
 val GDSCard = Color(0xFFD9823F)
 val GDSButton = Color(0xFF444444)
 val GDSTextWhite = Color.White
-val GDSTextDark = Color.DarkGray
+val GDSTextDark = Color.Black
+val GDSChart = Color(0xFFF2C067)

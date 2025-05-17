@@ -51,7 +51,7 @@ fun MonthlyGraphCard(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // (2) 그래프 카드
+        // 그래프 카드
         Card(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -60,7 +60,7 @@ fun MonthlyGraphCard(
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(0.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = MaterialTheme.colorScheme.secondary
             )
         ) {
             Column(
@@ -71,19 +71,19 @@ fun MonthlyGraphCard(
                     title,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
                 Row(verticalAlignment = Alignment.Bottom) {
                     val formatted = NumberFormat.getNumberInstance().format(current)
                     Text(
                         text = formatted,
                         style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         unit,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
 
@@ -122,9 +122,9 @@ fun MonthlyGraphCard(
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    it.month,
+                                    (it.month.takeLast(2).toInt()).toString(),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSecondary
                                 )
                             }
                         }
@@ -133,7 +133,7 @@ fun MonthlyGraphCard(
             }
         }
 
-        // (3) 뒤로 가기 버튼
+        // 뒤로 가기 버튼
         Button(
             onClick = onBack,
             modifier = Modifier

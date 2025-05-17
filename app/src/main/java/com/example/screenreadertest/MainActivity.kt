@@ -227,7 +227,7 @@ fun InfoCard(
         modifier = Modifier
             .size(width = 170.dp, height = 150.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
@@ -248,15 +248,15 @@ fun InfoCard(
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = number,
-                    fontSize = numberFontSize, // 🔥 이게 핵심
+                    fontSize = numberFontSize,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = unit,
                     fontSize = fontSize,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
             }
         }

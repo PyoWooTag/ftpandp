@@ -45,8 +45,11 @@ fun ScreenreadertestTheme(
 }
 
 val GDSLightColors = lightColorScheme(
-    primary = GDSCard,                 // 카드 및 버튼 배경
+    primary = GDSButton,                 // 카드 및 버튼 배경
     onPrimary = GDSTextWhite,         // 카드 및 버튼 내부 텍스트 색
+
+    secondary = GDSChart,         // 차트 배경
+    onSecondary = GDSTextDark,          // 차트 내용 등
 
     background = GDSBackground,       // 전체 배경
     onBackground = GDSTextDark,       // 일반 배경 위 텍스트
