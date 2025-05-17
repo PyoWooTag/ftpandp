@@ -21,41 +21,36 @@ fun MonthlyGraphCard(
     title: String,
     unit: String,
     graphData: List<MonthlyData>,
-    color: Color = MaterialTheme.colorScheme.surface,
+    color: Color = MaterialTheme.colorScheme.primary,
     onBack: () -> Unit
 ) {
     val current = graphData.lastOrNull()?.value ?: 0
     val diff = if (graphData.size >= 2) current - graphData[graphData.size - 2].value else 0
+    val maxValue = graphData.maxOfOrNull { it.value } ?: 1
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
     ) {
-        // (1) 상단 타이틀
-        Column(
+        Spacer(Modifier.height(24.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.title),
+            contentDescription = "그돈씨 TITLE",
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 60.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.title),
-                contentDescription = "그돈씨 TITLE",
-                modifier = Modifier
-                    .height(150.dp)
-                    .padding(bottom = 12.dp)
-            )
-        }
+                .height(150.dp)
+                .padding(bottom = 12.dp)
+        )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(48.dp))
 
-        // 그래프 카드
+        // 카드 영역
         Card(
             modifier = Modifier
-                .align(Alignment.Center)
-                .offset(y = 30.dp)
                 .fillMaxWidth(0.9f),
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(0.dp),
@@ -82,7 +77,7 @@ fun MonthlyGraphCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        unit,
+                        text = unit,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
@@ -96,8 +91,6 @@ fun MonthlyGraphCard(
                 )
 
                 Spacer(Modifier.height(16.dp))
-
-                val maxValue = graphData.maxOfOrNull { it.value } ?: 1
 
                 Box(
                     modifier = Modifier
@@ -133,14 +126,14 @@ fun MonthlyGraphCard(
             }
         }
 
-        // 뒤로 가기 버튼
+        Spacer(Modifier.height(32.dp))
+
+        // 버튼
         Button(
             onClick = onBack,
             modifier = Modifier
                 .fillMaxWidth(0.8f)
-                .height(50.dp)
-                .align(Alignment.BottomCenter)
-                .offset(y = (-140).dp),
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary

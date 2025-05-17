@@ -55,5 +55,5 @@ val GDSLightColors = lightColorScheme(
     onBackground = GDSTextDark,       // 일반 배경 위 텍스트
 
     surface = GDSCard,                // 카드 등 서페이스
-    onSurface = GDSTextWhite          // 서페이스 위 텍스트
+    onSurface = GDSTextDark          // 서페이스 위 텍스트
 )
