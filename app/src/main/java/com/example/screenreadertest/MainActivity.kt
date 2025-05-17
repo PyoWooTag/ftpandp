@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import androidx.compose.ui.unit.sp
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -34,6 +35,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -98,7 +101,9 @@ fun MainScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFFFD488))
             .padding(16.dp),
+
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -116,10 +121,10 @@ fun MainScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            InfoCard("멈춘 횟수", stats["stopCount"] ?: "-", "회") {
+            InfoCard("멈춘 횟수", stats["stopCount"] ?: "-", "회", fontSize = 18.sp) {
                 context.startActivity(Intent(context, StopDetailActivity::class.java))
             }
-            InfoCard("아낀 금액", stats["savedAmount"] ?: "-", "원") {
+            InfoCard("아낀 금액", stats["savedAmount"] ?: "-", "원", fontSize = 18.sp) {
                 context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
             }
         }
@@ -130,10 +135,11 @@ fun MainScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회") {
+            InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회",fontSize = 18.sp){
                 context.startActivity(Intent(context, OrderCountDetailActivity::class.java))
             }
-            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원") {
+            InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원",fontSize = 18.sp)
+             {
                 context.startActivity(Intent(context, OrderAmountDetailActivity::class.java))
             }
         }
@@ -151,7 +157,7 @@ fun MainScreen(
 //                DeliveryEventManager.resetAllEvents(context)
                       },
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF444444),
@@ -173,7 +179,7 @@ fun MainScreen(
             (context as? Activity)?.startActivityForResult(intent, MainActivity.REQUEST_CODE_EXPORT)
         },
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF444444),
@@ -208,16 +214,22 @@ fun openAccessibilitySettings(context: Context) {
 }
 
 @Composable
-fun InfoCard(label: String, number: String, unit: String = "", onClick: () -> Unit) {
+fun InfoCard(
+    label: String,
+    number: String,
+    unit: String = "",
+    fontSize: TextUnit = 14.sp,
+    onClick: () -> Unit
+) {
+    val numberFontSize = remember(fontSize) { TextUnit(fontSize.value + 12, fontSize.type) }
+
     Card(
         modifier = Modifier
-            .size(width = 160.dp, height = 160.dp)
+            .size(width = 150.dp, height = 150.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFD9823F) // ← 여기 색상 지정
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFD9823F)),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -226,17 +238,25 @@ fun InfoCard(label: String, number: String, unit: String = "", onClick: () -> Un
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = label, style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = label,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = number,
-                    style = MaterialTheme.typography.headlineSmall
+                    fontSize = numberFontSize, // 🔥 이게 핵심
+                    fontWeight = FontWeight.Bold,
+
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = unit,
-                    style = MaterialTheme.typography.bodySmall
+                    fontSize = fontSize,
+
                 )
             }
         }
