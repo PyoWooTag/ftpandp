@@ -35,24 +35,25 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun ScreenreadertestTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = GDSLightColors,
         typography = Typography,
         content = content
     )
 }
+
+val GDSLightColors = lightColorScheme(
+    primary = GDSButton,                 // 카드 및 버튼 배경
+    onPrimary = GDSTextWhite,         // 카드 및 버튼 내부 텍스트 색
+
+    secondary = GDSChart,         // 차트 배경
+    onSecondary = GDSTextDark,          // 차트 내용 등
+
+    background = GDSBackground,       // 전체 배경
+    onBackground = GDSTextDark,       // 일반 배경 위 텍스트
+
+    surface = GDSCard,                // 카드 등 서페이스
+    onSurface = GDSTextDark          // 서페이스 위 텍스트
+)

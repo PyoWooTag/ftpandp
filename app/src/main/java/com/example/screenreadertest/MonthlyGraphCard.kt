@@ -21,44 +21,41 @@ fun MonthlyGraphCard(
     title: String,
     unit: String,
     graphData: List<MonthlyData>,
-    color: Color,
+    color: Color = MaterialTheme.colorScheme.primary,
     onBack: () -> Unit
 ) {
     val current = graphData.lastOrNull()?.value ?: 0
     val diff = if (graphData.size >= 2) current - graphData[graphData.size - 2].value else 0
+    val maxValue = graphData.maxOfOrNull { it.value } ?: 1
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFD488))
-            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
     ) {
-        // (1) 상단 타이틀
-        Column(
+        Spacer(Modifier.height(24.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.title),
+            contentDescription = "그돈씨 TITLE",
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 60.dp), // 화면의 약 20~25%쯤 내려옴
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.title),
-                contentDescription = "그돈씨 TITLE",
-                modifier = Modifier
-                    .height(150.dp)
-                    .padding(bottom = 12.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(40.dp))
-        // (2) 중간~하단 그래프 카드
+                .height(150.dp)
+                .padding(bottom = 12.dp)
+        )
+
+        Spacer(Modifier.height(48.dp))
+
+        // 카드 영역
         Card(
             modifier = Modifier
-                .align(Alignment.Center)
-                .offset(y = 30.dp) // 아래로 더 내림
                 .fillMaxWidth(0.9f),
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(0.dp),
             colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF4C176)
+                containerColor = MaterialTheme.colorScheme.secondary
             )
         ) {
             Column(
@@ -68,14 +65,23 @@ fun MonthlyGraphCard(
                 Text(
                     title,
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
                 Row(verticalAlignment = Alignment.Bottom) {
                     val formatted = NumberFormat.getNumberInstance().format(current)
-                    Text(text = formatted, style = MaterialTheme.typography.headlineLarge)
+                    Text(
+                        text = formatted,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
                     Spacer(Modifier.width(4.dp))
-                    Text(unit)
+                    Text(
+                        text = unit,
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
                 }
+
                 val diffText = if (diff >= 0) "전월보다 ${diff}$unit ↑" else "전월보다 ${-diff}$unit ↓"
                 Text(
                     diffText,
@@ -85,7 +91,6 @@ fun MonthlyGraphCard(
                 )
 
                 Spacer(Modifier.height(16.dp))
-                val maxValue = graphData.maxOfOrNull { it.value } ?: 1
 
                 Box(
                     modifier = Modifier
@@ -109,7 +114,11 @@ fun MonthlyGraphCard(
                                         .background(color, RoundedCornerShape(4.dp))
                                 )
                                 Spacer(Modifier.height(4.dp))
-                                Text(it.month, style = MaterialTheme.typography.labelSmall)
+                                Text(
+                                    (it.month.takeLast(2).toInt()).toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondary
+                                )
                             }
                         }
                     }
@@ -117,20 +126,20 @@ fun MonthlyGraphCard(
             }
         }
 
-        // (3) 아래 뒤로 가기 버튼
+        Spacer(Modifier.height(32.dp))
+
+        // 버튼
         Button(
             onClick = onBack,
             modifier = Modifier
                 .fillMaxWidth(0.8f)
-                .height(50.dp)
-                .align(Alignment.BottomCenter)
-                .offset(y = (-140).dp),
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF444444),
-                contentColor = Color.White
-            ) // ← 여기 괄호 제대로 닫기
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
-            Text("뒤로 가기",fontSize = 18.sp)
+            Text("뒤로 가기", fontSize = 18.sp)
         }
     }
 }
