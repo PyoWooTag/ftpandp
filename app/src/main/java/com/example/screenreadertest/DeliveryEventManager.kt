@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -13,6 +12,11 @@ import java.io.FileWriter
 import java.time.OffsetDateTime
 import java.time.YearMonth
 import kotlin.random.Random
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+
 
 object DeliveryEventManager {
     private const val FILE_NAME = "ordered_data.json"
@@ -38,8 +42,27 @@ object DeliveryEventManager {
     fun appendEvent(context: Context, amount: Int, ordered: Boolean) {
         val file = getDataFile(context)
         val currentArray = JSONArray(file.readText())
+        val database = FirebaseDatabase.getInstance()
+        val myRef = database.getReference("Order")
 
         val uid = Firebase.auth.currentUser?.uid ?: "anonymous"
+
+        data class Order(
+            val uid: String,
+            val orderDate: String,
+            val orderAmount: Int,
+            val ordered: Int
+        )
+
+        val order = Order(
+            uid = uid,
+            orderDate = OffsetDateTime.now().toString(),
+            orderAmount = amount,
+            ordered = if (ordered) 1 else 0
+        )
+
+        // 여기다 DB 추가 수정
+        myRef.push().setValue(order)
 
         val event = JSONObject().apply {
             put("uid", uid)
@@ -48,7 +71,6 @@ object DeliveryEventManager {
             put("ordered", if (ordered) 1 else 0)
         }
 
-        // 여기다 DB 추가 수정
         currentArray.put(event)
         FileWriter(file, false).use { it.write(currentArray.toString(2)) }
     }
