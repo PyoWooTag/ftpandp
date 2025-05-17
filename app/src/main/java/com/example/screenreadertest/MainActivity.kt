@@ -136,11 +136,11 @@ fun MainScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             InfoCard("배달한 횟수", stats["orderCount"] ?: "-", "회",fontSize = 18.sp){
-                context.startActivity(Intent(context, StopDetailActivity::class.java))
+                context.startActivity(Intent(context, OrderCountDetailActivity::class.java))
             }
             InfoCard("배달한 금액", stats["orderAmount"] ?: "-", "원",fontSize = 18.sp)
              {
-                context.startActivity(Intent(context, SavedAmountDetailActivity::class.java))
+                context.startActivity(Intent(context, OrderAmountDetailActivity::class.java))
             }
         }
 

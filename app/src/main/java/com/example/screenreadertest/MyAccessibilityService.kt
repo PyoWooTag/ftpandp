@@ -492,7 +492,7 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     private fun showCoupangEatsPopup() {
-        val backgroundOverlayView = View(this).apply {
+            backgroundOverlayView = View(this).apply {
             setBackgroundColor(Color.argb(120, 0, 0, 0)) // 반투명 배경
         }
         val bgParams = WindowManager.LayoutParams(
