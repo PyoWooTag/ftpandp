@@ -9,3 +9,9 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+val GDSBackground = Color(0xFFFFD488)
+val GDSCard = Color(0xFFD9823F)
+val GDSButton = Color(0xFF444444)
+val GDSTextWhite = Color.White
+val GDSTextDark = Color.DarkGray

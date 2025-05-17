@@ -21,7 +21,7 @@ fun MonthlyGraphCard(
     title: String,
     unit: String,
     graphData: List<MonthlyData>,
-    color: Color,
+    color: Color = MaterialTheme.colorScheme.surface,
     onBack: () -> Unit
 ) {
     val current = graphData.lastOrNull()?.value ?: 0
@@ -30,14 +30,14 @@ fun MonthlyGraphCard(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFD488))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         // (1) 상단 타이틀
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 60.dp), // 화면의 약 20~25%쯤 내려옴
+                .padding(top = 60.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
@@ -48,17 +48,19 @@ fun MonthlyGraphCard(
                     .padding(bottom = 12.dp)
             )
         }
+
         Spacer(modifier = Modifier.height(40.dp))
-        // (2) 중간~하단 그래프 카드
+
+        // (2) 그래프 카드
         Card(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(y = 30.dp) // 아래로 더 내림
+                .offset(y = 30.dp)
                 .fillMaxWidth(0.9f),
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(0.dp),
             colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF4C176)
+                containerColor = MaterialTheme.colorScheme.background
             )
         ) {
             Column(
@@ -68,14 +70,23 @@ fun MonthlyGraphCard(
                 Text(
                     title,
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Row(verticalAlignment = Alignment.Bottom) {
                     val formatted = NumberFormat.getNumberInstance().format(current)
-                    Text(text = formatted, style = MaterialTheme.typography.headlineLarge)
+                    Text(
+                        text = formatted,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Spacer(Modifier.width(4.dp))
-                    Text(unit)
+                    Text(
+                        unit,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
+
                 val diffText = if (diff >= 0) "전월보다 ${diff}$unit ↑" else "전월보다 ${-diff}$unit ↓"
                 Text(
                     diffText,
@@ -85,6 +96,7 @@ fun MonthlyGraphCard(
                 )
 
                 Spacer(Modifier.height(16.dp))
+
                 val maxValue = graphData.maxOfOrNull { it.value } ?: 1
 
                 Box(
@@ -109,7 +121,11 @@ fun MonthlyGraphCard(
                                         .background(color, RoundedCornerShape(4.dp))
                                 )
                                 Spacer(Modifier.height(4.dp))
-                                Text(it.month, style = MaterialTheme.typography.labelSmall)
+                                Text(
+                                    it.month,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
                     }
@@ -117,7 +133,7 @@ fun MonthlyGraphCard(
             }
         }
 
-        // (3) 아래 뒤로 가기 버튼
+        // (3) 뒤로 가기 버튼
         Button(
             onClick = onBack,
             modifier = Modifier
@@ -126,11 +142,11 @@ fun MonthlyGraphCard(
                 .align(Alignment.BottomCenter)
                 .offset(y = (-140).dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF444444),
-                contentColor = Color.White
-            ) // ← 여기 괄호 제대로 닫기
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
-            Text("뒤로 가기",fontSize = 18.sp)
+            Text("뒤로 가기", fontSize = 18.sp)
         }
     }
 }

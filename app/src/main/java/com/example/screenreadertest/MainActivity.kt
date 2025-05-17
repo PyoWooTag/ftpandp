@@ -101,7 +101,7 @@ fun MainScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFD488))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
 
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -160,8 +160,8 @@ fun MainScreen(
                 .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF444444),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
             Text("접근성 설정 열기", fontSize = 18.sp)
@@ -182,8 +182,8 @@ fun MainScreen(
                 .fillMaxWidth(0.8f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF444444),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
             Text("백업 파일 저장하기", fontSize = 18.sp)
@@ -227,7 +227,7 @@ fun InfoCard(
         modifier = Modifier
             .size(width = 170.dp, height = 150.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFD9823F)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
@@ -242,7 +242,7 @@ fun InfoCard(
                 text = label,
                 fontSize = fontSize,
                 fontWeight = FontWeight.Medium,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.Bottom) {
@@ -250,13 +250,13 @@ fun InfoCard(
                     text = number,
                     fontSize = numberFontSize, // 🔥 이게 핵심
                     fontWeight = FontWeight.Bold,
-
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = unit,
                     fontSize = fontSize,
-
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
