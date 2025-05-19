@@ -441,20 +441,34 @@ class MyAccessibilityService : AccessibilityService() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { marginEnd = 8 }
             setPadding(12,4,12,4)
+//            setOnClickListener {
+//                isConfirmed = true
+//                isDeliver = true
+//                deliverCheckAttempts = 0
+//                ignoreUntil = System.currentTimeMillis() + 10_000
+//                removeOverlay()
+//                removeCenterPopup()
+//                overlayView?.isEnabled = false
+//                targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+//                targetButtonNode = null
+//
+//                handler.postDelayed({
+//                    rootInActiveWindow?.let { tryDetectOrderCompletion(it) }
+//                }, 1000)
+//            }
             setOnClickListener {
                 isConfirmed = true
-                isDeliver = true
-                deliverCheckAttempts = 0
+                isDeliver = false
                 ignoreUntil = System.currentTimeMillis() + 10_000
                 removeOverlay()
                 removeCenterPopup()
                 overlayView?.isEnabled = false
+
+                val amount = lastDetectedAmount
+                DeliveryEventManager.appendEvent(applicationContext, amount, true)
+
                 targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 targetButtonNode = null
-
-                handler.postDelayed({
-                    rootInActiveWindow?.let { tryDetectOrderCompletion(it) }
-                }, 1000)
             }
         }
 
@@ -576,20 +590,34 @@ class MyAccessibilityService : AccessibilityService() {
             setTextColor(Color.parseColor("#666666")) // 회색 글자
             setBackgroundColor(Color.TRANSPARENT) // 배경은 흰색
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+//            setOnClickListener {
+//                isConfirmed = true
+//                isDeliver = true
+//                deliverCheckAttempts = 0
+//                ignoreUntil = System.currentTimeMillis() + 10_000
+//                removeOverlay()
+//                removeCenterPopup()
+//                overlayView?.isEnabled = false
+//                targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+//                targetButtonNode = null
+//
+//                handler.postDelayed({
+//                    rootInActiveWindow?.let { tryDetectOrderCompletion(it) }
+//                }, 1000)
+//            }
             setOnClickListener {
                 isConfirmed = true
-                isDeliver = true
-                deliverCheckAttempts = 0
+                isDeliver = false
                 ignoreUntil = System.currentTimeMillis() + 10_000
                 removeOverlay()
                 removeCenterPopup()
                 overlayView?.isEnabled = false
+
+                val amount = lastDetectedAmount
+                DeliveryEventManager.appendEvent(applicationContext, amount, true)
+
                 targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 targetButtonNode = null
-
-                handler.postDelayed({
-                    rootInActiveWindow?.let { tryDetectOrderCompletion(it) }
-                }, 1000)
             }
         }
 
