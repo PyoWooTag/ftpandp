@@ -689,7 +689,7 @@ class MyAccessibilityService : AccessibilityService() {
 
     private fun checkOrderConfirmedByTime(node: AccessibilityNodeInfo): Boolean {
         val stack = mutableListOf(node)
-        val regex = Regex("""\d{1,3}\s*분""")  // 1~3자리 숫자 + "분"
+        val regex = Regex("""\d{1,3}\s*분[^\d]*""")  // 1~3자리 숫자 + "분"
 
         while (stack.isNotEmpty()) {
             val current = stack.removeAt(stack.lastIndex)
