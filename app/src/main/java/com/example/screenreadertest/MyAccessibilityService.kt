@@ -47,6 +47,9 @@ class MyAccessibilityService : AccessibilityService() {
 
     private lateinit var windowManager: WindowManager // WindowManager 미리 선언
 
+    private var deliverCheckAttempts = 0        // 현재 결제 탐지 횟수
+    private val maxDeliverCheckAttempts = 30     // MAX 결제 탐지 횟수
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -70,16 +73,15 @@ class MyAccessibilityService : AccessibilityService() {
 //        if (packageName !in targetApps) return
 
         // 주문 완료 감지
-        if (isDeliver && event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+        if (isDeliver && event.eventType in setOf(
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
+                AccessibilityEvent.TYPE_VIEW_SCROLLED,
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+                AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            )
+        ) {
             rootInActiveWindow?.let { node ->
-                if (checkOrderConfirmedByTime(node)) {
-                    val amount = lastDetectedAmount
-
-                    DeliveryEventManager.appendEvent(applicationContext, amount, true)
-                    Log.d("AccessibilityService", "✅ 최종 주문 기록 완료")
-
-                    isDeliver = false  // 중복 방지용 리셋
-                }
+                tryDetectOrderCompletion(node)
             }
         }
 
@@ -439,13 +441,32 @@ class MyAccessibilityService : AccessibilityService() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { marginEnd = 8 }
             setPadding(12,4,12,4)
+//            setOnClickListener {
+//                isConfirmed = true
+//                isDeliver = true
+//                deliverCheckAttempts = 0
+//                ignoreUntil = System.currentTimeMillis() + 10_000
+//                removeOverlay()
+//                removeCenterPopup()
+//                overlayView?.isEnabled = false
+//                targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+//                targetButtonNode = null
+//
+//                handler.postDelayed({
+//                    rootInActiveWindow?.let { tryDetectOrderCompletion(it) }
+//                }, 1000)
+//            }
             setOnClickListener {
                 isConfirmed = true
-                isDeliver = true
+                isDeliver = false
                 ignoreUntil = System.currentTimeMillis() + 10_000
                 removeOverlay()
                 removeCenterPopup()
                 overlayView?.isEnabled = false
+
+                val amount = lastDetectedAmount
+                DeliveryEventManager.appendEvent(applicationContext, amount, true)
+
                 targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 targetButtonNode = null
             }
@@ -569,13 +590,32 @@ class MyAccessibilityService : AccessibilityService() {
             setTextColor(Color.parseColor("#666666")) // 회색 글자
             setBackgroundColor(Color.TRANSPARENT) // 배경은 흰색
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+//            setOnClickListener {
+//                isConfirmed = true
+//                isDeliver = true
+//                deliverCheckAttempts = 0
+//                ignoreUntil = System.currentTimeMillis() + 10_000
+//                removeOverlay()
+//                removeCenterPopup()
+//                overlayView?.isEnabled = false
+//                targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+//                targetButtonNode = null
+//
+//                handler.postDelayed({
+//                    rootInActiveWindow?.let { tryDetectOrderCompletion(it) }
+//                }, 1000)
+//            }
             setOnClickListener {
                 isConfirmed = true
-                isDeliver = true
+                isDeliver = false
                 ignoreUntil = System.currentTimeMillis() + 10_000
                 removeOverlay()
                 removeCenterPopup()
                 overlayView?.isEnabled = false
+
+                val amount = lastDetectedAmount
+                DeliveryEventManager.appendEvent(applicationContext, amount, true)
+
                 targetButtonNode?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 targetButtonNode = null
             }
@@ -677,7 +717,7 @@ class MyAccessibilityService : AccessibilityService() {
 
     private fun checkOrderConfirmedByTime(node: AccessibilityNodeInfo): Boolean {
         val stack = mutableListOf(node)
-        val regex = Regex("""\d{1,3}\s*분""")  // 1~3자리 숫자 + "분"
+        val regex = Regex("""\d{1,3}\s*분[^\d]*""")  // 1~3자리 숫자 + "분"
 
         while (stack.isNotEmpty()) {
             val current = stack.removeAt(stack.lastIndex)
@@ -696,6 +736,26 @@ class MyAccessibilityService : AccessibilityService() {
         return false
     }
 
+    private fun tryDetectOrderCompletion(node: AccessibilityNodeInfo) {
+        if (!isDeliver) return
 
+        val detected = checkOrderConfirmedByTime(node)
+        if (detected) {
+            // 주문 완료
+            DeliveryEventManager.appendEvent(applicationContext, lastDetectedAmount, true)
+            isDeliver = false
+            return
+        }
+
+        if (deliverCheckAttempts < maxDeliverCheckAttempts) {
+            deliverCheckAttempts++
+            handler.postDelayed({
+                rootInActiveWindow?.let { tryDetectOrderCompletion(it) }
+            }, 2000)
+        } else {
+            Log.d("AccessibilityService", "❌ 감지 실패 – 타임아웃")
+            isDeliver = false
+        }
+    }
 
 }
